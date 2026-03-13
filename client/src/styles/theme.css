@@ -1,0 +1,174 @@
+:root {
+  --cui-primary: #2563eb;
+  --cui-primary-rgb: 37, 99, 235;
+  --cui-primary-hover: #1d4ed8;
+
+  --cui-secondary: #64748b;
+  --cui-secondary-rgb: 100, 116, 139;
+
+  --cui-success: #22c55e;
+  --cui-success-rgb: 34, 197, 94;
+
+  --cui-danger: #f43f5e;
+  --cui-danger-rgb: 244, 63, 94;
+
+  --cui-warning: #f97316;
+  --cui-warning-rgb: 249, 115, 22;
+
+  --cui-info: #06b6d4;
+  --cui-info-rgb: 6, 182, 212;
+
+  --cui-body-font-family: "Plus Jakarta Sans", sans-serif;
+  --cui-body-font-size: 0.9rem;
+  --cui-body-line-height: 1.6;
+
+  --cui-border-radius: 0.5rem;
+  --cui-border-radius-lg: 0.75rem;
+  --cui-border-radius-sm: 0.25rem;
+}
+
+[data-coreui-theme="light"] {
+  --cui-primary: #2563eb;
+  --cui-primary-rgb: 37, 99, 235;
+
+  --cui-secondary: #64748b;
+  --cui-secondary-rgb: 100, 116, 139;
+
+  --cui-success: #22c55e;
+  --cui-success-rgb: 34, 197, 94;
+
+  --cui-danger: #f43f5e;
+  --cui-danger-rgb: 244, 63, 94;
+
+  --cui-warning: #f97316;
+  --cui-warning-rgb: 249, 115, 22;
+
+  --cui-info: #06b6d4;
+  --cui-info-rgb: 6, 182, 212;
+
+  --cui-body-bg: #f1f5f9;
+  --cui-body-color: #1e293b;
+  --cui-card-bg: #ffffff;
+  --cui-border-color: #e2e8f0;
+  --cui-secondary-bg: #f8fafc;
+}
+
+[data-coreui-theme="dark"] {
+  --cui-primary: #2563eb;
+  --cui-primary-rgb: 37, 99, 235;
+
+  --cui-secondary: #64748b;
+  --cui-secondary-rgb: 100, 116, 139;
+
+  --cui-success: #22c55e;
+  --cui-success-rgb: 34, 197, 94;
+
+  --cui-danger: #f43f5e;
+  --cui-danger-rgb: 244, 63, 94;
+
+  --cui-warning: #f97316;
+  --cui-warning-rgb: 249, 115, 22;
+
+  --cui-info: #06b6d4;
+  --cui-info-rgb: 6, 182, 212;
+
+  --cui-body-bg: #0f172a;
+  --cui-body-color: #e2e8f0;
+  --cui-card-bg: #1e293b;
+  --cui-border-color: #334155;
+  --cui-secondary-bg: #1e293b;
+}
+
+.btn-primary {
+  --cui-btn-bg: #2563eb;
+  --cui-btn-border-color: #2563eb;
+  --cui-btn-hover-bg: #1d4ed8;
+  --cui-btn-hover-border-color: #1d4ed8;
+  --cui-btn-active-bg: #1d4ed8;
+  --cui-btn-color: #ffffff;
+  --cui-btn-hover-color: #ffffff;
+  --cui-btn-active-color: #ffffff;
+}
+
+.btn-outline-primary {
+  --cui-btn-color: #2563eb;
+  --cui-btn-border-color: #2563eb;
+  --cui-btn-hover-bg: #2563eb;
+  --cui-btn-hover-border-color: #2563eb;
+  --cui-btn-hover-color: #ffffff;
+}
+
+.btn-success {
+  --cui-btn-bg: #22c55e;
+  --cui-btn-border-color: #22c55e;
+  --cui-btn-hover-bg: #16a34a;
+  --cui-btn-hover-border-color: #16a34a;
+  --cui-btn-active-bg: #16a34a;
+  --cui-btn-color: #ffffff;
+  --cui-btn-hover-color: #ffffff;
+}
+
+.btn-outline-success {
+  --cui-btn-color: #22c55e;
+  --cui-btn-border-color: #22c55e;
+  --cui-btn-hover-bg: #22c55e;
+  --cui-btn-hover-color: #ffffff;
+}
+
+.btn-danger {
+  --cui-btn-bg: #f43f5e;
+  --cui-btn-border-color: #f43f5e;
+  --cui-btn-hover-bg: #e11d48;
+  --cui-btn-hover-border-color: #e11d48;
+  --cui-btn-active-bg: #e11d48;
+  --cui-btn-color: #ffffff;
+  --cui-btn-hover-color: #ffffff;
+}
+
+.btn-outline-danger {
+  --cui-btn-color: #f43f5e;
+  --cui-btn-border-color: #f43f5e;
+  --cui-btn-hover-bg: #f43f5e;
+  --cui-btn-hover-color: #ffffff;
+}
+
+.btn-warning {
+  --cui-btn-bg: #f97316;
+  --cui-btn-border-color: #f97316;
+  --cui-btn-hover-bg: #ea6c0a;
+  --cui-btn-hover-border-color: #ea6c0a;
+  --cui-btn-active-bg: #ea6c0a;
+  --cui-btn-color: #ffffff;
+  --cui-btn-hover-color: #ffffff;
+}
+
+.btn-outline-warning {
+  --cui-btn-color: #f97316;
+  --cui-btn-border-color: #f97316;
+  --cui-btn-hover-bg: #f97316;
+  --cui-btn-hover-color: #ffffff;
+}
+
+.alert-primary {
+  --cui-alert-bg: rgba(37, 99, 235, 0.12);
+  --cui-alert-border-color: rgba(37, 99, 235, 0.4);
+  --cui-alert-color: #1d4ed8;
+}
+
+.alert-success {
+  --cui-alert-bg: rgba(34, 197, 94, 0.12);
+  --cui-alert-border-color: rgba(34, 197, 94, 0.4);
+  --cui-alert-color: #16a34a;
+}
+
+.alert-danger {
+  --cui-alert-bg: rgba(244, 63, 94, 0.12);
+  --cui-alert-border-color: rgba(244, 63, 94, 0.4);
+  --cui-alert-color: #e11d48;
+}
+
+.alert-warning {
+  --cui-alert-bg: rgba(249, 115, 22, 0.12);
+  --cui-alert-border-color: rgba(249, 115, 22, 0.4);
+  --cui-alert-color: #c2410c;
+}

@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Rol {
+  id_rol                Int          @id @default(autoincrement())
+  nombre                String       @db.VarChar(50)
+  descripcion           String?      @db.VarChar(150)
+  estado                Int          @default(1) @db.TinyInt
+  fecha_creacion        DateTime     @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  usuarios              Usuario[]
+  rol_permisos          RolPermiso[]
+
+  @@map("roles")
+}
+
+model Permiso {
+  id_permiso            Int          @id @default(autoincrement())
+  nombre                String       @db.VarChar(80)
+  descripcion           String?      @db.VarChar(150)
+  estado                Int          @default(1) @db.TinyInt
+  fecha_creacion        DateTime     @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  rol_permisos          RolPermiso[]
+
+  @@map("permisos")
+}
+
+model RolPermiso {
+  id         Int     @id @default(autoincrement())
+  id_rol     Int
+  id_permiso Int
+  estado     Int     @default(1) @db.TinyInt
+  rol        Rol     @relation(fields: [id_rol], references: [id_rol])
+  permiso    Permiso @relation(fields: [id_permiso], references: [id_permiso])
+
+  @@map("rol_permiso")
+}
+
+model Usuario {
+  id_usuario            Int       @id @default(autoincrement())
+  nombre                String    @db.VarChar(100)
+  correo                String    @unique @db.VarChar(120)
+  clave                 String    @db.VarChar(255)
+  id_rol                Int?
+  telefono              String?   @db.VarChar(20)
+  estado                Int       @default(1) @db.TinyInt
+  fecha_creacion        DateTime  @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  rol                   Rol?      @relation(fields: [id_rol], references: [id_rol])
+
+  @@map("usuarios")
+}

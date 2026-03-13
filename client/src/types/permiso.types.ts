@@ -1,0 +1,18 @@
+export interface Permiso {
+  id_permiso: number;
+  nombre: string;
+  descripcion?: string | null;
+  estado: number;
+  fecha_creacion: string | null;
+  fecha_actualizacion: string | null;
+  usuario_creacion?: number | null;
+  usuario_actualizacion?: number | null;
+}
+
+export interface CrearPermisoDTO {
+  nombre: string;
+  descripcion?: string;
+  estado?: number;
+}
+
+export type ActualizarPermisoDTO = Partial<CrearPermisoDTO>;
