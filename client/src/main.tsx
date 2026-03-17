@@ -8,14 +8,17 @@ import "@fontsource/plus-jakarta-sans/700.css";
 import "./styles/theme.css";
 import "./index.css";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider } from "./context/AuthContext";
 import ToastProvider from "./components/shared/ToastProvider";
 import App from "./App";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
-      <ToastProvider />
+      <AuthProvider>
+        <App />
+        <ToastProvider />
+      </AuthProvider>
     </ThemeProvider>
   </StrictMode>,
 );

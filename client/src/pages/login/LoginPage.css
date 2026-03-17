@@ -1,0 +1,44 @@
+.login-page {
+  background: linear-gradient(135deg, var(--cui-primary) 0%, #1e3a8a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-page::before {
+  content: "";
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 40%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.login-card {
+  border-radius: 1rem 0 0 1rem !important;
+  background: rgba(var(--cui-body-bg-rgb), 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.brand-card {
+  border-radius: 0 1rem 1rem 0 !important;
+  background: rgba(37, 99, 235, 0.9) !important;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 767.98px) {
+  .login-card {
+    border-radius: 1rem !important;
+  }
+}
+
+.login-card h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-control:focus {
+  background-color: var(--cui-light) !important;
+}

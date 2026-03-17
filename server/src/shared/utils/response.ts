@@ -15,6 +15,9 @@ export const badRequest = (res: Response, message = "Datos inválidos") =>
 export const notFound = (res: Response, message = "No encontrado") =>
   res.status(404).json({ success: false, message });
 
+export const unauthorized = (res: Response, message = "No autorizado") =>
+  res.status(401).json({ success: false, message });
+
 export const serverError = (res: Response, error?: unknown) => {
   return res
     .status(500)
