@@ -14,6 +14,8 @@ interface ConfirmModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   loading?: boolean;
+  confirmText?: string;
+  confirmColor?: "primary" | "danger" | "warning" | "success";
 }
 
 export default function ConfirmModal({
@@ -23,6 +25,8 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
   loading,
+  confirmText = "Confirmar",
+  confirmColor = "danger",
 }: ConfirmModalProps) {
   return (
     <CModal visible={visible} onClose={onCancel} alignment="center">
@@ -39,8 +43,8 @@ export default function ConfirmModal({
         >
           Cancelar
         </CButton>
-        <CButton color="danger" onClick={onConfirm} disabled={loading}>
-          {loading ? "Eliminando..." : "Eliminar"}
+        <CButton color={confirmColor} onClick={onConfirm} disabled={loading}>
+          {confirmText}
         </CButton>
       </CModalFooter>
     </CModal>

@@ -48,18 +48,31 @@ model RolPermiso {
 }
 
 model Usuario {
-  id_usuario            Int       @id @default(autoincrement())
-  nombre                String    @db.VarChar(100)
-  correo                String    @unique @db.VarChar(120)
-  clave                 String    @db.VarChar(255)
+  id_usuario            Int                   @id @default(autoincrement())
+  nombre                String                @db.VarChar(100)
+  correo                String                @unique @db.VarChar(120)
+  clave                 String                @db.VarChar(255)
   id_rol                Int?
-  telefono              String?   @db.VarChar(20)
-  estado                Int       @default(1) @db.TinyInt
-  fecha_creacion        DateTime  @default(now())
+  telefono              String?               @db.VarChar(20)
+  estado                Int                   @default(1) @db.TinyInt
+  fecha_creacion        DateTime              @default(now())
   fecha_actualizacion   DateTime?
   usuario_creacion      Int?
   usuario_actualizacion Int?
-  rol                   Rol?      @relation(fields: [id_rol], references: [id_rol])
+  rol                   Rol?                  @relation(fields: [id_rol], references: [id_rol])
+  codigos_verificacion  CodigoVerificacion[]
 
   @@map("usuarios")
+}
+
+model CodigoVerificacion {
+  id             Int      @id @default(autoincrement())
+  id_usuario     Int
+  codigo         String   @db.VarChar(6)
+  expira_en      DateTime
+  usado          Int      @default(0) @db.TinyInt
+  fecha_creacion DateTime @default(now())
+  usuario        Usuario  @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@map("codigos_verificacion")
 }

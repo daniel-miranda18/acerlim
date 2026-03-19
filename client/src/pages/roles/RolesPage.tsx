@@ -402,6 +402,7 @@ export default function RolesPage() {
         onConfirm={handleConfirmEliminar}
         onCancel={() => setConfirmVisible(false)}
         loading={formLoading}
+        confirmText={formLoading ? "Eliminando..." : "Eliminar"}
       />
 
       <RolPermisosModal

@@ -383,6 +383,7 @@ export default function PermisosPage() {
         onConfirm={handleConfirmEliminar}
         onCancel={() => setConfirmVisible(false)}
         loading={formLoading}
+        confirmText={formLoading ? "Eliminando..." : "Eliminar"}
       />
     </>
   );
