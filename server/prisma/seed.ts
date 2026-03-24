@@ -6,31 +6,51 @@ async function main() {
   console.log("Iniciando el sembrado de la base de datos...");
 
   try {
-    // 1. Crear Rol de Administrador
-    const adminRol = await prisma.rol.upsert({
+    const gerenteRol = await prisma.rol.upsert({
       where: { id_rol: 1 },
-      update: {},
+      update: { nombre: "Gerente", descripcion: "Acceso total al sistema" },
       create: {
         id_rol: 1,
-        nombre: "Administrador",
+        nombre: "Gerente",
         descripcion: "Acceso total al sistema",
         estado: 1,
       },
     });
 
-    console.log("Rol de Administrador creado/verificado:", adminRol.nombre);
+    await prisma.rol.upsert({
+      where: { id_rol: 2 },
+      update: { nombre: "Operador en Producción", descripcion: "Módulo de producción" },
+      create: {
+        id_rol: 2,
+        nombre: "Operador en Producción",
+        descripcion: "Módulo de producción",
+        estado: 1,
+      },
+    });
 
-    // 2. Crear Usuario Administrador
+    await prisma.rol.upsert({
+      where: { id_rol: 3 },
+      update: { nombre: "Vendedor", descripcion: "Módulo de ventas" },
+      create: {
+        id_rol: 3,
+        nombre: "Vendedor",
+        descripcion: "Módulo de ventas",
+        estado: 1,
+      },
+    });
+
+    console.log("Roles creados/verificados correctamente");
+
     const adminClave = await bcrypt.hash("admin123", 10);
     
     const adminUser = await prisma.usuario.upsert({
       where: { correo: "admin@acerlim.com" },
       update: {},
       create: {
-        nombre: "Administrador del Sistema",
+        nombre: "Gerente del Sistema",
         correo: "admin@acerlim.com",
         clave: adminClave,
-        id_rol: adminRol.id_rol,
+        id_rol: gerenteRol.id_rol,
         estado: 1,
       },
     });

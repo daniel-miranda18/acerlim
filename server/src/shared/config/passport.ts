@@ -53,6 +53,11 @@ passport.use(
             correo: true,
             id_rol: true,
             estado: true,
+            rol: {
+              select: {
+                nombre: true,
+              },
+            },
           },
         });
 

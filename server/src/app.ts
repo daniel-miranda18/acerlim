@@ -3,6 +3,7 @@ import cors from "cors";
 import { errorMiddleware } from "./shared/middlewares/error.middleware";
 import passport from "./shared/config/passport";
 import { requireAuth } from "./shared/middlewares/auth.middleware";
+import { requireRole } from "./shared/middlewares/role.middleware";
 import authRoutes from "./modules/auth/auth.routes";
 import usuarioRoutes from "./modules/usuarios/usuario.routes";
 import rolRoutes from "./modules/roles/rol.routes";
@@ -17,10 +18,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/usuarios", requireAuth, usuarioRoutes);
-app.use("/api/roles", requireAuth, rolRoutes);
-app.use("/api/permisos", requireAuth, permisoRoutes);
-app.use("/api/roles/:id/permisos", requireAuth, rolPermisoRoutes);
+app.use("/api/usuarios", requireAuth, requireRole(["gerente"]), usuarioRoutes);
+app.use("/api/roles", requireAuth, requireRole(["gerente"]), rolRoutes);
+app.use("/api/permisos", requireAuth, requireRole(["gerente"]), permisoRoutes);
+app.use("/api/roles/:id/permisos", requireAuth, requireRole(["gerente"]), rolPermisoRoutes);
 
 app.use(errorMiddleware);
 

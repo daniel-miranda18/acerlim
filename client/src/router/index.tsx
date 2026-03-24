@@ -6,6 +6,7 @@ import RolesPage from "../pages/roles/RolesPage";
 import PermisosPage from "../pages/permisos/PermisosPage";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoginPage from "../pages/login/LoginPage";
+import UnauthorizedPage from "../pages/auth/UnauthorizedPage";
 
 export const router = createBrowserRouter([
   {
@@ -13,8 +14,12 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "/unauthorized",
+    element: <UnauthorizedPage />,
+  },
+  {
     path: "/",
-    element: <ProtectedRoute />,
+    element: <ProtectedRoute allowedRoles={["gerente"]} />,
     children: [
       {
         path: "/",
