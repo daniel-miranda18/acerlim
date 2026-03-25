@@ -1,0 +1,244 @@
+CREATE DATABASE sistema_acerlim;
+USE sistema_acerlim;
+
+-- =========================
+-- USUARIOS Y SEGURIDAD
+-- =========================
+
+CREATE TABLE roles(
+id_rol INT AUTO_INCREMENT PRIMARY KEY,
+nombre VARCHAR(50),
+descripcion VARCHAR(150),
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT
+);
+
+CREATE TABLE permisos(
+id_permiso INT AUTO_INCREMENT PRIMARY KEY,
+nombre VARCHAR(80),
+descripcion VARCHAR(150),
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT
+);
+
+CREATE TABLE rol_permiso(
+id INT AUTO_INCREMENT PRIMARY KEY,
+id_rol INT,
+id_permiso INT,
+estado TINYINT DEFAULT 1
+);
+
+CREATE TABLE usuarios(
+id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+nombre VARCHAR(100),
+correo VARCHAR(120) UNIQUE,
+password VARCHAR(255),
+id_rol INT,
+telefono VARCHAR(20),
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT,
+FOREIGN KEY(id_rol) REFERENCES roles(id_rol)
+);
+
+-- =========================
+-- CONTROL DE SESIONES
+-- =========================
+
+CREATE TABLE sesiones(
+id_sesion INT AUTO_INCREMENT PRIMARY KEY,
+id_usuario INT,
+fecha_inicio DATETIME,
+fecha_cierre DATETIME,
+ip VARCHAR(45),
+dispositivo VARCHAR(120),
+estado TINYINT DEFAULT 1,
+FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
+);
+
+-- =========================
+-- AUDITORIA
+-- =========================
+
+CREATE TABLE eventos_http(
+id_evento INT AUTO_INCREMENT PRIMARY KEY,
+id_usuario INT,
+metodo VARCHAR(10), -- POST PUT DELETE GET
+endpoint VARCHAR(150),
+descripcion TEXT,
+fecha_evento DATETIME DEFAULT CURRENT_TIMESTAMP,
+estado TINYINT DEFAULT 1
+);
+
+CREATE TABLE auditoria(
+id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
+tabla_afectada VARCHAR(100),
+id_registro INT,
+accion VARCHAR(20),
+descripcion TEXT,
+id_usuario INT,
+fecha_evento DATETIME DEFAULT CURRENT_TIMESTAMP,
+estado TINYINT DEFAULT 1
+);
+
+-- =========================
+-- INVENTARIO MATERIA PRIMA
+-- =========================
+
+CREATE TABLE bobinas(
+id_bobina INT AUTO_INCREMENT PRIMARY KEY,
+codigo_lote VARCHAR(50),
+color VARCHAR(50),
+espesor DECIMAL(5,2),
+ancho DECIMAL(8,2),
+peso_inicial DECIMAL(10,2),
+peso_actual DECIMAL(10,2),
+fecha_ingreso DATE,
+proveedor VARCHAR(100),
+estado_bobina VARCHAR(50),
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT
+);
+
+-- =========================
+-- PRODUCTOS
+-- =========================
+
+CREATE TABLE productos(
+id_producto INT AUTO_INCREMENT PRIMARY KEY,
+nombre VARCHAR(100),
+descripcion TEXT,
+color VARCHAR(50),
+medida_largo DECIMAL(10,2),
+medida_ancho DECIMAL(10,2),
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT
+);
+
+-- =========================
+-- PRODUCCION
+-- =========================
+
+CREATE TABLE produccion(
+id_produccion INT AUTO_INCREMENT PRIMARY KEY,
+id_producto INT,
+cantidad INT,
+fecha_produccion DATE,
+observaciones TEXT,
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT,
+FOREIGN KEY(id_producto) REFERENCES productos(id_producto)
+);
+
+-- =========================
+-- CONSUMO DE BOBINAS
+-- =========================
+
+CREATE TABLE consumo_bobina(
+id_consumo INT AUTO_INCREMENT PRIMARY KEY,
+id_produccion INT,
+id_bobina INT,
+cantidad_utilizada DECIMAL(10,2),
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT,
+FOREIGN KEY(id_produccion) REFERENCES produccion(id_produccion),
+FOREIGN KEY(id_bobina) REFERENCES bobinas(id_bobina)
+);
+
+-- =========================
+-- PEDIDOS
+-- =========================
+
+CREATE TABLE pedidos(
+id_pedido INT AUTO_INCREMENT PRIMARY KEY,
+cliente VARCHAR(120),
+fecha_pedido DATE,
+estado_pedido VARCHAR(50),
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT
+);
+
+CREATE TABLE detalle_pedido(
+id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+id_pedido INT,
+id_producto INT,
+cantidad INT,
+precio DECIMAL(10,2),
+estado TINYINT DEFAULT 1,
+FOREIGN KEY(id_pedido) REFERENCES pedidos(id_pedido),
+FOREIGN KEY(id_producto) REFERENCES productos(id_producto)
+);
+
+-- =========================
+-- PREDICCION DE DEMANDA
+-- =========================
+
+CREATE TABLE dataset_prediccion(
+id_dataset INT AUTO_INCREMENT PRIMARY KEY,
+fecha DATE,
+producto VARCHAR(100),
+cantidad_vendida INT,
+temporada VARCHAR(50),
+estado TINYINT DEFAULT 1
+);
+
+CREATE TABLE modelo_prediccion(
+id_modelo INT AUTO_INCREMENT PRIMARY KEY,
+nombre_modelo VARCHAR(100),
+version VARCHAR(20),
+fecha_entrenamiento DATE,
+precision DECIMAL(5,2),
+estado TINYINT DEFAULT 1
+);
+
+CREATE TABLE predicciones_demanda(
+id_prediccion INT AUTO_INCREMENT PRIMARY KEY,
+id_modelo INT,
+producto VARCHAR(100),
+fecha_prediccion DATE,
+demanda_estimada INT,
+estado TINYINT DEFAULT 1,
+FOREIGN KEY(id_modelo) REFERENCES modelo_prediccion(id_modelo)
+);
+
+-- =========================
+-- DIBUJO 2D KONVA
+-- =========================
+
+CREATE TABLE dibujos_calaminas(
+id_dibujo INT AUTO_INCREMENT PRIMARY KEY,
+id_producto INT,
+largo DECIMAL(10,2),
+ancho DECIMAL(10,2),
+datos_json TEXT,
+imagen_generada TEXT,
+estado TINYINT DEFAULT 1,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+fecha_actualizacion DATETIME,
+usuario_creacion INT,
+usuario_actualizacion INT,
+FOREIGN KEY(id_producto) REFERENCES productos(id_producto)
+);

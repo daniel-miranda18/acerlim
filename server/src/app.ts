@@ -9,6 +9,9 @@ import usuarioRoutes from "./modules/usuarios/usuario.routes";
 import rolRoutes from "./modules/roles/rol.routes";
 import permisoRoutes from "./modules/permisos/permiso.routes";
 import rolPermisoRoutes from "./modules/rol_permiso/rol_permiso.routes";
+import bobinaRoutes from "./modules/bobinas/bobina.routes";
+import productoRoutes from "./modules/productos/producto.routes";
+import dibujoRoutes from "./modules/productos/dibujo.routes";
 
 const app = express();
 
@@ -22,6 +25,8 @@ app.use("/api/usuarios", requireAuth, requireRole(["gerente"]), usuarioRoutes);
 app.use("/api/roles", requireAuth, requireRole(["gerente"]), rolRoutes);
 app.use("/api/permisos", requireAuth, requireRole(["gerente"]), permisoRoutes);
 app.use("/api/roles/:id/permisos", requireAuth, requireRole(["gerente"]), rolPermisoRoutes);
+app.use("/api/bobinas", requireAuth, bobinaRoutes);
+app.use("/api/productos", requireAuth, productoRoutes);
 
 app.use(errorMiddleware);
 

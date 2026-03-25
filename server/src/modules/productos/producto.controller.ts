@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { usuarioService } from "./usuario.service";
+import { productoService } from "./producto.service";
 import {
   ok,
   created,
@@ -8,10 +8,10 @@ import {
   serverError,
 } from "../../shared/utils/response";
 
-export const usuarioController = {
+export const productoController = {
   listar: async (_req: Request, res: Response) => {
     try {
-      const data = await usuarioService.listar();
+      const data = await productoService.listar();
       ok(res, data);
     } catch (e) {
       serverError(res);
@@ -20,7 +20,7 @@ export const usuarioController = {
 
   obtener: async (req: Request, res: Response) => {
     try {
-      const data = await usuarioService.obtener(Number(req.params.id));
+      const data = await productoService.obtener(Number(req.params.id));
       ok(res, data);
     } catch (e: any) {
       notFound(res, e.message);
@@ -29,8 +29,7 @@ export const usuarioController = {
 
   crear: async (req: Request, res: Response) => {
     try {
-      const usuarioId = (req as any).user?.id_usuario || 1;
-      const data = await usuarioService.crear(req.body, usuarioId);
+      const data = await productoService.crear(req.body);
       created(res, data);
     } catch (e: any) {
       badRequest(res, e.message);
@@ -39,11 +38,9 @@ export const usuarioController = {
 
   actualizar: async (req: Request, res: Response) => {
     try {
-      const usuarioId = (req as any).user?.id_usuario || 1;
-      const data = await usuarioService.actualizar(
+      const data = await productoService.actualizar(
         Number(req.params.id),
         req.body,
-        usuarioId
       );
       ok(res, data, "Actualizado correctamente");
     } catch (e: any) {
@@ -53,7 +50,7 @@ export const usuarioController = {
 
   eliminar: async (req: Request, res: Response) => {
     try {
-      await usuarioService.eliminar(Number(req.params.id));
+      await productoService.eliminar(Number(req.params.id));
       ok(res, null, "Eliminado correctamente");
     } catch (e: any) {
       notFound(res, e.message);

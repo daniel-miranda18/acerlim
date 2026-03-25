@@ -76,3 +76,60 @@ model CodigoVerificacion {
 
   @@map("codigos_verificacion")
 }
+
+model Bobina {
+  id_bobina             Int       @id @default(autoincrement())
+  codigo_lote           String?   @db.VarChar(50)
+  color                 String?   @db.VarChar(50)
+  espesor               Decimal?  @db.Decimal(5, 2)
+  ancho                 Decimal?  @db.Decimal(8, 2)
+  peso_inicial          Decimal?  @db.Decimal(10, 2)
+  peso_actual           Decimal?  @db.Decimal(10, 2)
+  fecha_ingreso         DateTime? @db.Date
+  proveedor             String?   @db.VarChar(100)
+  estado_bobina         String?   @db.VarChar(50)
+  estado                Int       @default(1) @db.TinyInt
+  fecha_creacion        DateTime  @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+
+  @@map("bobinas")
+}
+
+model Producto {
+  id_producto           Int               @id @default(autoincrement())
+  nombre                String?           @db.VarChar(100)
+  descripcion           String?           @db.Text
+  color                 String?           @db.VarChar(50)
+  medida_largo          Decimal?          @db.Decimal(10, 2)
+  medida_ancho          Decimal?          @db.Decimal(10, 2)
+  estado                Int               @default(1) @db.TinyInt
+  fecha_creacion        DateTime          @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  dibujos               DibujoCalamina[]
+
+  @@map("productos")
+}
+
+model DibujoCalamina {
+  id_dibujo             Int       @id @default(autoincrement())
+  id_producto           Int
+  largo                 Decimal   @db.Decimal(10, 2)
+  ancho                 Decimal   @db.Decimal(10, 2)
+  area_plana            Decimal?  @db.Decimal(12, 2)
+  area_proyectada       Decimal?  @db.Decimal(12, 2)
+  configuracion_calculo Json?     // Almacena pendientes, cumbres, limas, etc.
+  datos_json            String?   @db.Text
+  imagen_generada       String?   @db.Text
+  estado                Int       @default(1) @db.TinyInt
+  fecha_creacion        DateTime  @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  producto              Producto  @relation(fields: [id_producto], references: [id_producto])
+
+  @@map("productos_dibujos")
+}

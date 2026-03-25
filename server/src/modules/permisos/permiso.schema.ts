@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const crearPermisoSchema = z.object({
-  nombre: z.string().min(1).max(80),
-  descripcion: z.string().max(150).optional(),
+  nombre: z.string().min(1, "El nombre es requerido").regex(/.*[a-zA-Z].*/, "Debe contener al menos una letra").max(80, "Máximo 80 caracteres"),
+  descripcion: z.string().regex(/^$|.*[a-zA-Z].*/, "Debe contener al menos una letra").max(150, "Máximo 150 caracteres").optional().nullable(),
   estado: z.number().int().min(0).max(1).default(1),
 });
 

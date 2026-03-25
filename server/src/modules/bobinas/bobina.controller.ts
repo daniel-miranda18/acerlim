@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { usuarioService } from "./usuario.service";
+import { bobinaService } from "./bobina.service";
 import {
   ok,
   created,
@@ -8,10 +8,10 @@ import {
   serverError,
 } from "../../shared/utils/response";
 
-export const usuarioController = {
+export const bobinaController = {
   listar: async (_req: Request, res: Response) => {
     try {
-      const data = await usuarioService.listar();
+      const data = await bobinaService.listar();
       ok(res, data);
     } catch (e) {
       serverError(res);
@@ -20,17 +20,26 @@ export const usuarioController = {
 
   obtener: async (req: Request, res: Response) => {
     try {
-      const data = await usuarioService.obtener(Number(req.params.id));
+      const data = await bobinaService.obtener(Number(req.params.id));
       ok(res, data);
     } catch (e: any) {
       notFound(res, e.message);
     }
   },
 
+  getStockPorTipo: async (_req: Request, res: Response) => {
+    try {
+      const data = await bobinaService.getStockPorTipo();
+      ok(res, data);
+    } catch (e) {
+      serverError(res);
+    }
+  },
+
   crear: async (req: Request, res: Response) => {
     try {
       const usuarioId = (req as any).user?.id_usuario || 1;
-      const data = await usuarioService.crear(req.body, usuarioId);
+      const data = await bobinaService.crear(req.body, usuarioId);
       created(res, data);
     } catch (e: any) {
       badRequest(res, e.message);
@@ -40,7 +49,7 @@ export const usuarioController = {
   actualizar: async (req: Request, res: Response) => {
     try {
       const usuarioId = (req as any).user?.id_usuario || 1;
-      const data = await usuarioService.actualizar(
+      const data = await bobinaService.actualizar(
         Number(req.params.id),
         req.body,
         usuarioId
@@ -53,7 +62,7 @@ export const usuarioController = {
 
   eliminar: async (req: Request, res: Response) => {
     try {
-      await usuarioService.eliminar(Number(req.params.id));
+      await bobinaService.eliminar(Number(req.params.id));
       ok(res, null, "Eliminado correctamente");
     } catch (e: any) {
       notFound(res, e.message);

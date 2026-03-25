@@ -11,21 +11,23 @@ export const usuarioService = {
     return usuario;
   },
 
-  crear: async (data: CrearUsuarioDTO) => {
+  crear: async (data: CrearUsuarioDTO, usuarioId: number) => {
+    data.correo = data.correo.toLowerCase().trim();
     const existe = await usuarioRepository.findByCorreo(data.correo);
     if (existe) throw new Error("El correo ya está registrado");
     const clave = await bcrypt.hash(data.clave, 10);
-    return usuarioRepository.create({ ...data, clave }, 1);
+    return usuarioRepository.create({ ...data, clave }, usuarioId);
   },
 
-  actualizar: async (id: number, data: ActualizarUsuarioDTO) => {
+  actualizar: async (id: number, data: ActualizarUsuarioDTO, usuarioId: number) => {
     await usuarioService.obtener(id);
     if (data.correo) {
+      data.correo = data.correo.toLowerCase().trim();
       const existe = await usuarioRepository.findByCorreo(data.correo);
       if (existe && existe.id_usuario !== id)
         throw new Error("El correo ya está en uso");
     }
-    return usuarioRepository.update(id, data, 1);
+    return usuarioRepository.update(id, data, usuarioId);
   },
 
   eliminar: async (id: number) => {

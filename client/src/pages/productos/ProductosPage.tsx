@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useReactTable,
   getCoreRowModel,
@@ -29,58 +30,55 @@ import {
   cilArrowTop,
   cilArrowBottom,
   cilCloudDownload,
-  cilShieldAlt,
+  cilLayers,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import toast from "react-hot-toast";
-import { useRoles } from "../../hooks/useRoles";
-import RolForm from "./RolForm";
+import { useProductos } from "../../hooks/useProductos";
+import type { Producto } from "../../types/producto.types";
+import ProductoForm from "./ProductoForm";
 import ConfirmModal from "../../components/shared/ConfirmModal";
-import RolPermisosModal from "./RolPermisosModal";
 import { exportToExcel } from "../../utils/exportExcel";
-import type { Rol, CrearRolDTO } from "../../types/rol.types";
 
-export default function RolesPage() {
-  const { roles, loading, crear, actualizar, eliminar } = useRoles();
-
+export default function ProductosPage() {
+  const navigate = useNavigate();
+  const { productos, loading, crear, actualizar, eliminar } = useProductos();
+  
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [formVisible, setFormVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
-  const [selectedRol, setSelectedRol] = useState<Rol | null>(null);
+  const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
   const [formLoading, setFormLoading] = useState(false);
-  const [permisosVisible, setPermisosVisible] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
 
-  const handleGestionarPermisos = (r: Rol) => {
-    setSelectedRol(r);
-    setPermisosVisible(true);
-  };
   const handleCrear = () => {
-    setSelectedRol(null);
+    setSelectedProducto(null);
     setFormErrors({});
     setFormVisible(true);
   };
-  const handleEditar = (r: Rol) => {
-    setSelectedRol(r);
+
+  const handleEditar = (p: Producto) => {
+    setSelectedProducto(p);
     setFormErrors({});
     setFormVisible(true);
   };
-  const handleEliminar = (r: Rol) => {
-    setSelectedRol(r);
+
+  const handleEliminar = (p: Producto) => {
+    setSelectedProducto(p);
     setConfirmVisible(true);
   };
 
-  const handleSubmit = async (data: CrearRolDTO) => {
+  const handleSubmit = async (data: Partial<Producto>) => {
     setFormLoading(true);
     setFormErrors({});
     try {
-      if (selectedRol) {
-        await actualizar(selectedRol.id_rol, data);
-        toast.success("Rol actualizado correctamente");
+      if (selectedProducto) {
+        await actualizar(selectedProducto.id_producto, data);
+        toast.success("Tipo de calamina actualizado");
       } else {
         await crear(data);
-        toast.success("Rol creado correctamente");
+        toast.success("Tipo de calamina registrado");
       }
       setFormVisible(false);
     } catch (e: any) {
@@ -96,21 +94,20 @@ export default function RolesPage() {
       } else {
         toast.error(e.message || "Error al guardar");
       }
-      throw e;
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleConfirmEliminar = async () => {
-    if (!selectedRol) return;
+    if (!selectedProducto) return;
     setFormLoading(true);
     try {
-      await eliminar(selectedRol.id_rol);
-      toast.success("Rol eliminado correctamente");
+      await eliminar(selectedProducto.id_producto);
+      toast.success("Tipo eliminado");
       setConfirmVisible(false);
     } catch {
-      toast.error("Error al eliminar el rol");
+      toast.error("Error al eliminar");
     } finally {
       setFormLoading(false);
     }
@@ -118,40 +115,33 @@ export default function RolesPage() {
 
   const handleExportar = () => {
     const data = table.getFilteredRowModel().rows.map((row) => ({
-      ID: row.original.id_rol,
+      ID: row.original.id_producto,
       Nombre: row.original.nombre,
       Descripción: row.original.descripcion ?? "",
-      Estado: row.original.estado === 1 ? "Activo" : "Inactivo",
-      "Fecha Creación": row.original.fecha_creacion ?? "",
+      Color: row.original.color,
+      "Largo (m)": row.original.medida_largo,
+      "Ancho (m)": row.original.medida_ancho,
     }));
-    exportToExcel(data, "roles", "Roles");
+    exportToExcel(data, "tipos_calamina", "Tipos de Calamina");
     toast.success("Exportado a Excel correctamente");
   };
 
-  const columns = useMemo<ColumnDef<Rol>[]>(
+  const columns = useMemo<ColumnDef<Producto>[]>(
     () => [
-      { header: "#", accessorKey: "id_rol", size: 60 },
+      { header: "#", accessorKey: "id_producto", size: 60 },
       { header: "Nombre", accessorKey: "nombre" },
-      {
-        header: "Descripción",
+      { 
+        header: "Descripción", 
         accessorKey: "descripcion",
-        cell: ({ getValue }) =>
-          getValue() ?? <span className="text-secondary">—</span>,
+        cell: ({ getValue }) => getValue() ?? <span className="text-secondary">—</span>,
       },
-      {
-        header: "Estado",
-        accessorKey: "estado",
-        cell: ({ getValue }) => (
-          <CBadge color={getValue() === 1 ? "success" : "danger"}>
-            {getValue() === 1 ? "Activo" : "Inactivo"}
-          </CBadge>
-        ),
+      { 
+        header: "Color", 
+        accessorKey: "color",
+        cell: ({ getValue }) => <CBadge color="info">{getValue() as string}</CBadge>,
       },
-      {
-        header: "Creado",
-        accessorKey: "fecha_creacion",
-        cell: ({ getValue }) => getValue() ?? "—",
-      },
+      { header: "Largo (m)", accessorKey: "medida_largo" },
+      { header: "Ancho (m)", accessorKey: "medida_ancho" },
       {
         header: "Acciones",
         id: "acciones",
@@ -161,15 +151,10 @@ export default function RolesPage() {
               color="info"
               variant="outline"
               size="sm"
-              onClick={() => handleGestionarPermisos(row.original)}
-              title={
-                row.original.estado === 0
-                  ? "El rol está inactivo"
-                  : "Gestionar permisos"
-              }
-              disabled={row.original.estado === 0}
+              title="Modelar 2D"
+              onClick={() => navigate(`/modeling?id_producto=${row.original.id_producto}`)}
             >
-              <CIcon icon={cilShieldAlt} />
+              <CIcon icon={cilLayers} />
             </CButton>
             <CButton
               color="primary"
@@ -191,11 +176,11 @@ export default function RolesPage() {
         ),
       },
     ],
-    [],
+    []
   );
 
   const table = useReactTable({
-    data: roles,
+    data: productos,
     columns,
     state: { globalFilter, sorting },
     onGlobalFilterChange: setGlobalFilter,
@@ -211,8 +196,10 @@ export default function RolesPage() {
     <>
       <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
         <div>
-          <h4 className="mb-0 fw-bold">Roles</h4>
-          <small className="text-secondary">Gestión de roles del sistema</small>
+          <h4 className="mb-0 fw-bold">Tipos de Calamina</h4>
+          <small className="text-secondary">
+            Catálogo de productos y dimensiones
+          </small>
         </div>
         <div className="d-flex gap-2">
           <CButton
@@ -230,7 +217,7 @@ export default function RolesPage() {
             className="d-flex align-items-center gap-2"
           >
             <CIcon icon={cilPlus} />
-            Nuevo rol
+            Registrar Tipo
           </CButton>
         </div>
       </div>
@@ -239,7 +226,7 @@ export default function RolesPage() {
         <CCardHeader className="py-3">
           <div className="d-flex align-items-center justify-content-between mb-2">
             <span className="fw-semibold">
-              {table.getFilteredRowModel().rows.length} roles encontrados
+              {table.getFilteredRowModel().rows.length} tipos encontrados
             </span>
             <div className="d-flex align-items-center gap-2">
               <small className="text-secondary text-nowrap">Mostrar</small>
@@ -263,7 +250,7 @@ export default function RolesPage() {
               <CIcon icon={cilSearch} />
             </CInputGroupText>
             <CFormInput
-              placeholder="Buscar rol..."
+              placeholder="Buscar tipo de producto..."
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
             />
@@ -297,7 +284,7 @@ export default function RolesPage() {
                             <div className="d-flex align-items-center gap-1">
                               {flexRender(
                                 header.column.columnDef.header,
-                                header.getContext(),
+                                header.getContext()
                               )}
                               {header.column.getIsSorted() === "asc" && (
                                 <CIcon icon={cilArrowTop} size="sm" />
@@ -318,7 +305,7 @@ export default function RolesPage() {
                           colSpan={columns.length}
                           className="text-center py-5 text-secondary"
                         >
-                          No se encontraron roles
+                          No se encontraron tipos de producto
                         </td>
                       </tr>
                     ) : (
@@ -334,7 +321,7 @@ export default function RolesPage() {
                             >
                               {flexRender(
                                 cell.column.columnDef.cell,
-                                cell.getContext(),
+                                cell.getContext()
                               )}
                             </td>
                           ))}
@@ -355,7 +342,7 @@ export default function RolesPage() {
                   {Math.min(
                     (table.getState().pagination.pageIndex + 1) *
                       table.getState().pagination.pageSize,
-                    table.getFilteredRowModel().rows.length,
+                    table.getFilteredRowModel().rows.length
                   )}{" "}
                   de {table.getFilteredRowModel().rows.length} registros
                 </small>
@@ -403,29 +390,23 @@ export default function RolesPage() {
         </CCardBody>
       </CCard>
 
-      <RolForm
+      <ProductoForm
         visible={formVisible}
         onClose={() => setFormVisible(false)}
         onSubmit={handleSubmit}
-        rol={selectedRol}
+        producto={selectedProducto}
         loading={formLoading}
         errors={formErrors}
       />
 
       <ConfirmModal
         visible={confirmVisible}
-        title="Eliminar rol"
-        message={`¿Estás seguro que deseas eliminar el rol "${selectedRol?.nombre}"?`}
+        title="Eliminar Tipo"
+        message={`¿Estás seguro que deseas eliminar el tipo "${selectedProducto?.nombre}"?`}
         onConfirm={handleConfirmEliminar}
         onCancel={() => setConfirmVisible(false)}
         loading={formLoading}
         confirmText={formLoading ? "Eliminando..." : "Eliminar"}
-      />
-
-      <RolPermisosModal
-        visible={permisosVisible}
-        onClose={() => setPermisosVisible(false)}
-        rol={selectedRol}
       />
     </>
   );

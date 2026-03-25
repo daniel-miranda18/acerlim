@@ -23,6 +23,7 @@ interface RolFormProps {
   onSubmit: (data: CrearRolDTO) => Promise<void>;
   rol?: Rol | null;
   loading?: boolean;
+  errors?: Record<string, string[]>;
 }
 
 const initialForm = { nombre: "", descripcion: "", estado: 1 };
@@ -33,6 +34,7 @@ export default function RolForm({
   onSubmit,
   rol,
   loading,
+  errors = {},
 }: RolFormProps) {
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState<string | null>(null);
@@ -98,6 +100,8 @@ export default function RolForm({
                 value={form.nombre}
                 onChange={handleChange}
                 placeholder="Ej. Administrador"
+                invalid={!!errors.nombre}
+                feedbackInvalid={errors.nombre?.[0]}
               />
             </CCol>
             <CCol xs={12}>
@@ -108,6 +112,8 @@ export default function RolForm({
                 onChange={handleChange}
                 placeholder="Descripción del rol..."
                 rows={3}
+                invalid={!!errors.descripcion}
+                feedbackInvalid={errors.descripcion?.[0]}
               />
             </CCol>
             <CCol xs={12}>

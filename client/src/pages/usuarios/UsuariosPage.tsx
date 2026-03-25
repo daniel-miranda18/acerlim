@@ -52,13 +52,16 @@ export default function UsuariosPage() {
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
 
   const handleCrear = () => {
     setSelectedUsuario(null);
+    setFormErrors({});
     setFormVisible(true);
   };
   const handleEditar = (u: Usuario) => {
     setSelectedUsuario(u);
+    setFormErrors({});
     setFormVisible(true);
   };
   const handleEliminar = (u: Usuario) => {
@@ -68,6 +71,7 @@ export default function UsuariosPage() {
 
   const handleSubmit = async (data: CrearUsuarioDTO | ActualizarUsuarioDTO) => {
     setFormLoading(true);
+    setFormErrors({});
     try {
       if (selectedUsuario) {
         await actualizar(
@@ -79,8 +83,20 @@ export default function UsuariosPage() {
         await crear(data as CrearUsuarioDTO);
         toast.success("Usuario creado correctamente");
       }
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Error al guardar");
+      setFormVisible(false);
+    } catch (e: any) {
+      if (e.response?.data?.errors) {
+        setFormErrors(e.response.data.errors);
+        const errs = e.response.data.errors;
+        const firstKey = Object.keys(errs)[0];
+        if (firstKey) {
+            toast.error(`Error en ${firstKey}: ${errs[firstKey][0]}`);
+        } else {
+            toast.error("Por favor, corrige los errores en el formulario");
+        }
+      } else {
+        toast.error(e.message || "Error al guardar");
+      }
       throw e;
     } finally {
       setFormLoading(false);
@@ -396,6 +412,7 @@ export default function UsuariosPage() {
         usuario={selectedUsuario}
         roles={roles}
         loading={formLoading}
+        errors={formErrors}
       />
 
       <ConfirmModal

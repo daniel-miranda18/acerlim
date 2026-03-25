@@ -28,6 +28,7 @@ interface UsuarioFormProps {
   usuario?: Usuario | null;
   roles: Rol[];
   loading?: boolean;
+  errors?: Record<string, string[]>;
 }
 
 const initialForm = {
@@ -46,6 +47,7 @@ export default function UsuarioForm({
   usuario,
   roles,
   loading,
+  errors = {},
 }: UsuarioFormProps) {
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +137,8 @@ export default function UsuarioForm({
                 value={form.nombre}
                 onChange={handleChange}
                 placeholder="Ej. Juan Pérez"
+                invalid={!!errors.nombre}
+                feedbackInvalid={errors.nombre?.[0]}
               />
             </CCol>
 
@@ -146,6 +150,8 @@ export default function UsuarioForm({
                 value={form.correo}
                 onChange={handleChange}
                 placeholder="juanperez123@acerlim.com"
+                invalid={!!errors.correo}
+                feedbackInvalid={errors.correo?.[0]}
               />
             </CCol>
 
@@ -158,6 +164,8 @@ export default function UsuarioForm({
                   value={form.clave}
                   onChange={handleChange}
                   placeholder="Mínimo 6 caracteres"
+                  invalid={!!errors.clave}
+                  feedbackInvalid={errors.clave?.[0]}
                 />
               </CCol>
             )}
@@ -169,6 +177,8 @@ export default function UsuarioForm({
                 value={form.telefono}
                 onChange={handleChange}
                 placeholder="Ej. 77712345"
+                invalid={!!errors.telefono}
+                feedbackInvalid={errors.telefono?.[0]}
               />
             </CCol>
 
@@ -178,6 +188,8 @@ export default function UsuarioForm({
                 name="id_rol"
                 value={form.id_rol}
                 onChange={handleChange}
+                invalid={!!errors.id_rol}
+                feedbackInvalid={errors.id_rol?.[0]}
               >
                 <option value={0}>Sin rol</option>
                 {roles.map((r) => (

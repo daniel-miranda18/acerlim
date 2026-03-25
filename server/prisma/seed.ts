@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 
 async function main() {
   console.log("Iniciando el sembrado de la base de datos...");
-
   try {
     const gerenteRol = await prisma.rol.upsert({
       where: { id_rol: 1 },

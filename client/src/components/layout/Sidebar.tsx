@@ -10,6 +10,8 @@ import {
   cilPeople,
   cilShieldAlt,
   cilLockLocked,
+  cilLayers,
+  cilTags,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { NavLink } from "react-router-dom";
@@ -91,6 +93,39 @@ export default function Sidebar({ visible, onToggle }: SidebarProps) {
           </NavLink>
         </CNavItem>
 
+        <CNavTitle>Almacén e Inventario</CNavTitle>
+
+        <CNavItem>
+          <NavLink
+            to="/bobinas"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilLayers} customClassName="nav-icon" />
+            Bobinas
+          </NavLink>
+        </CNavItem>
+
+        <CNavItem>
+          <NavLink
+            to="/productos"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilTags} customClassName="nav-icon" />
+            Tipos de Calamina
+          </NavLink>
+        </CNavItem>
+        {/*
+             <CNavItem>
+          <NavLink
+            to="/modelado"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilLayers} customClassName="nav-icon" />
+            Modelado 2D
+          </NavLink>
+        </CNavItem>
+        */}
+        
         <CNavTitle>Administración</CNavTitle>
 
         <CNavItem>

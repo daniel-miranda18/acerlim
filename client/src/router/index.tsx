@@ -4,9 +4,12 @@ import DashboardPage from "../pages/dashboard/DashboardPage";
 import UsuariosPage from "../pages/usuarios/UsuariosPage";
 import RolesPage from "../pages/roles/RolesPage";
 import PermisosPage from "../pages/permisos/PermisosPage";
+import BobinasPage from "../pages/bobinas/BobinasPage";
+import ProductosPage from "../pages/productos/ProductosPage";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoginPage from "../pages/login/LoginPage";
 import UnauthorizedPage from "../pages/auth/UnauthorizedPage";
+import ModeladoPage from "../pages/modelado/ModeladoPage";
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +33,9 @@ export const router = createBrowserRouter([
           { path: "usuarios", element: <UsuariosPage /> },
           { path: "roles", element: <RolesPage /> },
           { path: "permisos", element: <PermisosPage /> },
+          { path: "bobinas", element: <BobinasPage /> },
+          { path: "productos", element: <ProductosPage /> },
+          { path: "modelado", element: <ModeladoPage /> },
         ],
       },
     ],
