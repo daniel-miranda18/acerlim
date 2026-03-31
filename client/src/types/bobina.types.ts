@@ -6,6 +6,8 @@ export interface Bobina {
   ancho: number;
   peso_inicial: number;
   peso_actual: number;
+  metros_lineales_inicial: number;
+  metros_lineales_actual: number;
   fecha_ingreso: string;
   proveedor: string;
   estado_bobina: string;

@@ -61,12 +61,14 @@ export const bobinaRepository = {
   },
 
   create: async (data: CrearBobinaDTO, usuarioCreacion: number) => {
-    const fecha_ingreso = data.fecha_ingreso ? new Date(data.fecha_ingreso) : null;
+    // Append T12:00:00 to prevent timezone shift that causes next-day bug
+    const fecha_ingreso = data.fecha_ingreso ? new Date(data.fecha_ingreso + "T12:00:00") : null;
     const b = await prisma.bobina.create({
       data: { 
         ...data, 
         fecha_ingreso,
         peso_actual: data.peso_actual ?? data.peso_inicial,
+        metros_lineales_actual: data.metros_lineales_actual ?? data.metros_lineales_inicial,
         usuario_creacion: usuarioCreacion 
       },
     });
@@ -78,7 +80,7 @@ export const bobinaRepository = {
       where: { id_bobina: id },
       data: {
         ...data,
-        fecha_ingreso: data.fecha_ingreso ? new Date(data.fecha_ingreso) : undefined,
+        fecha_ingreso: data.fecha_ingreso ? new Date(data.fecha_ingreso + "T12:00:00") : undefined,
         fecha_actualizacion: now(),
         usuario_actualizacion: usuarioActualizacion,
       },

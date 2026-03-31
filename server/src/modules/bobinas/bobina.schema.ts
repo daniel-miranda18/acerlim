@@ -7,9 +7,11 @@ export const crearBobinaSchema = z.object({
   ancho: z.coerce.number().positive("Debe ser mayor a 0"),
   peso_inicial: z.coerce.number().positive("Debe ser mayor a 0"),
   peso_actual: z.coerce.number().positive("Debe ser mayor a 0"),
+  metros_lineales_inicial: z.coerce.number().positive("Debe ser mayor a 0").optional().nullable(),
+  metros_lineales_actual: z.coerce.number().positive("Debe ser mayor a 0").optional().nullable(),
   fecha_ingreso: z.string().optional().nullable(),
   proveedor: z.string().max(100, "Máximo 100 caracteres").optional().nullable(),
-  estado_bobina: z.string().max(50, "Máximo 50 caracteres").optional().nullable(),
+  estado_bobina: z.enum(["En Inventario", "En Producción", "Agotado"]).optional().nullable(),
 });
 
 export const actualizarBobinaSchema = crearBobinaSchema.partial();

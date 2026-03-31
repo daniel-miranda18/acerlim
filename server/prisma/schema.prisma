@@ -78,21 +78,23 @@ model CodigoVerificacion {
 }
 
 model Bobina {
-  id_bobina             Int       @id @default(autoincrement())
-  codigo_lote           String?   @db.VarChar(50)
-  color                 String?   @db.VarChar(50)
-  espesor               Decimal?  @db.Decimal(5, 2)
-  ancho                 Decimal?  @db.Decimal(8, 2)
-  peso_inicial          Decimal?  @db.Decimal(10, 2)
-  peso_actual           Decimal?  @db.Decimal(10, 2)
-  fecha_ingreso         DateTime? @db.Date
-  proveedor             String?   @db.VarChar(100)
-  estado_bobina         String?   @db.VarChar(50)
-  estado                Int       @default(1) @db.TinyInt
-  fecha_creacion        DateTime  @default(now())
-  fecha_actualizacion   DateTime?
-  usuario_creacion      Int?
-  usuario_actualizacion Int?
+  id_bobina               Int       @id @default(autoincrement())
+  codigo_lote             String?   @db.VarChar(50)
+  color                   String?   @db.VarChar(50)
+  espesor                 Decimal?  @db.Decimal(5, 2)
+  ancho                   Decimal?  @db.Decimal(8, 2)
+  peso_inicial            Decimal?  @db.Decimal(10, 2)
+  peso_actual             Decimal?  @db.Decimal(10, 2)
+  metros_lineales_inicial Decimal?  @db.Decimal(10, 2)
+  metros_lineales_actual  Decimal?  @db.Decimal(10, 2)
+  fecha_ingreso           DateTime? @db.Date
+  proveedor               String?   @db.VarChar(100)
+  estado_bobina           String?   @db.VarChar(50)
+  estado                  Int       @default(1) @db.TinyInt
+  fecha_creacion          DateTime  @default(now())
+  fecha_actualizacion     DateTime?
+  usuario_creacion        Int?
+  usuario_actualizacion   Int?
 
   @@map("bobinas")
 }

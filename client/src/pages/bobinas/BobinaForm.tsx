@@ -10,6 +10,7 @@ import {
   CForm,
   CFormInput,
   CFormLabel,
+  CFormSelect,
   CRow,
   CCol,
   CSpinner,
@@ -32,6 +33,14 @@ export default function BobinaForm({
   loading,
   errors = {},
 }: BobinaFormProps) {
+  const getLocalDate = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const [formData, setFormData] = useState<Partial<Bobina>>(
     bobina || {
       codigo_lote: "",
@@ -40,8 +49,11 @@ export default function BobinaForm({
       ancho: 0,
       peso_inicial: 0,
       peso_actual: 0,
+      metros_lineales_inicial: 0,
+      metros_lineales_actual: 0,
       proveedor: "",
-      fecha_ingreso: new Date().toISOString().substring(0, 10),
+      estado_bobina: "En Inventario",
+      fecha_ingreso: getLocalDate(),
     }
   );
 
@@ -54,7 +66,10 @@ export default function BobinaForm({
         ancho: Number(bobina.ancho) || 0,
         peso_inicial: Number(bobina.peso_inicial) || 0,
         peso_actual: Number(bobina.peso_actual) || 0,
+        metros_lineales_inicial: Number(bobina.metros_lineales_inicial) || 0,
+        metros_lineales_actual: Number(bobina.metros_lineales_actual) || 0,
         fecha_ingreso: bobina.fecha_ingreso ? bobina.fecha_ingreso.substring(0, 10) : "",
+        estado_bobina: bobina.estado_bobina || "En Inventario",
       });
     } else {
       setFormData({
@@ -64,17 +79,21 @@ export default function BobinaForm({
         ancho: 0,
         peso_inicial: 0,
         peso_actual: 0,
+        metros_lineales_inicial: 0,
+        metros_lineales_actual: 0,
         proveedor: "",
-        fecha_ingreso: new Date().toISOString().substring(0, 10),
+        estado_bobina: "En Inventario",
+        fecha_ingreso: getLocalDate(),
       });
     }
   }, [bobina, visible]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const isNumber = ["espesor", "ancho", "peso_inicial", "peso_actual", "metros_lineales_inicial", "metros_lineales_actual"].includes(name);
     setFormData((prev: any) => ({
       ...prev,
-      [name]: type === "number" ? Number(value) : value,
+      [name]: isNumber ? Number(value) : value,
     }));
   };
 
@@ -86,8 +105,12 @@ export default function BobinaForm({
       if (!submitData.peso_actual || Number(submitData.peso_actual) <= 0) {
         submitData.peso_actual = submitData.peso_inicial;
       }
+      if (!submitData.metros_lineales_actual || Number(submitData.metros_lineales_actual) <= 0) {
+        submitData.metros_lineales_actual = submitData.metros_lineales_inicial;
+      }
     } else {
       delete submitData.peso_actual;
+      delete submitData.metros_lineales_actual;
       delete (submitData as any).id_bobina;
       delete (submitData as any).fecha_creacion;
       delete (submitData as any).fecha_actualizacion;
@@ -197,7 +220,49 @@ export default function BobinaForm({
                 />
               </CCol>
             )}
-            <CCol md={bobina ? 6 : 12}>
+            <CCol md={6}>
+              <CFormLabel>Metros Lineales Inicial (m)</CFormLabel>
+              <CFormInput
+                type="number"
+                step="0.01"
+                min="0"
+                name="metros_lineales_inicial"
+                value={formData.metros_lineales_inicial || ""}
+                onChange={handleChange}
+                invalid={!!errors.metros_lineales_inicial}
+                feedbackInvalid={errors.metros_lineales_inicial?.[0]}
+              />
+            </CCol>
+            {!bobina && (
+              <CCol md={6}>
+                <CFormLabel>Metros Lineales Actual (m)</CFormLabel>
+                <CFormInput
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="metros_lineales_actual"
+                  value={formData.metros_lineales_actual || formData.metros_lineales_inicial || ""}
+                  onChange={handleChange}
+                  invalid={!!errors.metros_lineales_actual}
+                  feedbackInvalid={errors.metros_lineales_actual?.[0]}
+                />
+              </CCol>
+            )}
+            <CCol md={6}>
+              <CFormLabel>Estado Bobina</CFormLabel>
+              <CFormSelect
+                name="estado_bobina"
+                value={formData.estado_bobina || "En Inventario"}
+                onChange={handleChange}
+                invalid={!!errors.estado_bobina}
+                feedbackInvalid={errors.estado_bobina?.[0]}
+              >
+                <option value="En Inventario">En Inventario</option>
+                <option value="En Producción">En Producción</option>
+                <option value="Agotado">Agotado</option>
+              </CFormSelect>
+            </CCol>
+            <CCol md={bobina ? 12 : 6}>
               <CFormLabel>Proveedor</CFormLabel>
               <CFormInput
                 name="proveedor"

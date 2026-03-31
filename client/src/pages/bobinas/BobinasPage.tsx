@@ -134,7 +134,8 @@ export default function BobinasPage() {
       "Espesor": row.original.espesor,
       "Ancho": row.original.ancho,
       "Peso Inicial (kg)": row.original.peso_inicial,
-      "Peso Actual (kg)": row.original.peso_actual,
+      "Metros Lineales (m)": row.original.metros_lineales_actual,
+      "Estado Bobina": row.original.estado_bobina || "Sin estado",
     }));
     exportToExcel(data, "historial_bobinas", "Historial Bobinas");
     toast.success("Exportado a Excel correctamente");
@@ -171,9 +172,29 @@ export default function BobinasPage() {
       { header: "Espesor", accessorKey: "espesor" },
       { header: "Ancho", accessorKey: "ancho" },
       { 
-        header: "Peso Actual", 
-        accessorKey: "peso_actual",
+        header: "Peso Inicial", 
+        accessorKey: "peso_inicial",
         cell: ({ getValue }) => `${getValue()} kg`,
+      },
+      { 
+        header: "Metros Lineales", 
+        accessorKey: "metros_lineales_inicial",
+        cell: ({ getValue }) => {
+          const val = getValue();
+          return val != null ? `${val} m` : "—";
+        },
+      },
+      {
+        header: "Estado Bobina",
+        accessorKey: "estado_bobina",
+        cell: ({ getValue }) => {
+          const estado = getValue() as string;
+          let color: string = "secondary";
+          if (estado === "En Inventario") color = "info";
+          else if (estado === "En Producción") color = "warning";
+          else if (estado === "Agotado") color = "danger";
+          return <CBadge color={color}>{estado || "Sin estado"}</CBadge>;
+        },
       },
       {
         header: "Acciones",
