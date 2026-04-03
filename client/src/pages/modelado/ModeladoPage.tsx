@@ -137,7 +137,6 @@ const ModeladoPage: React.FC = () => {
                 })}
               </KonvaStage>
 
-              {/* Toolbar flotante */}
               <div 
                 className={`position-absolute start-3 top-50 translate-middle-y d-flex flex-column gap-2 p-2 rounded shadow-sm border ${theme === 'dark' ? 'bg-dark border-secondary' : 'bg-white'}`}
                 style={{ zIndex: 100 }}
@@ -148,7 +147,6 @@ const ModeladoPage: React.FC = () => {
                 <CButton color="light" variant="ghost" size="sm" title="Inicio" onClick={handleResetZoom}><CIcon icon={cilHome} /></CButton>
               </div>
 
-              {/* Leyenda inferior */}
               <div 
                 className={`position-absolute bottom-3 end-3 d-flex flex-column gap-1 p-2 rounded border shadow-sm ${theme === 'dark' ? 'bg-dark border-secondary text-light' : 'bg-white text-secondary'}`}
                 style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', zIndex: 100 }}

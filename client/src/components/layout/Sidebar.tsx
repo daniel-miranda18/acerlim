@@ -137,8 +137,8 @@ export default function Sidebar({ visible, onVisibleChange, onToggle }: SidebarP
             Lotes
           </NavLink>
         </CNavItem>
-        {/*
-             <CNavItem>
+   
+        <CNavItem>
           <NavLink
             to="/modelado"
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
@@ -147,7 +147,6 @@ export default function Sidebar({ visible, onVisibleChange, onToggle }: SidebarP
             Modelado 2D
           </NavLink>
         </CNavItem>
-        */}
         
         <CNavTitle>Administración</CNavTitle>
 

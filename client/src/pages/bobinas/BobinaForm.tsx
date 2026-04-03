@@ -120,8 +120,7 @@ export default function BobinaForm({
         submitData.metros_lineales_actual = submitData.metros_lineales_inicial;
       }
     } else {
-      delete submitData.peso_actual;
-      delete submitData.metros_lineales_actual;
+      // metadata fields that shouldn't be updated manually
       delete (submitData as any).id_bobina;
       delete (submitData as any).fecha_creacion;
       delete (submitData as any).fecha_actualizacion;
@@ -242,7 +241,7 @@ export default function BobinaForm({
                 required
               />
             </CCol>
-            <CCol md={6}>
+            <CCol md={12}>
               <CFormLabel>Peso Inicial (kg)</CFormLabel>
               <CFormInput
                 type="number"
@@ -256,23 +255,7 @@ export default function BobinaForm({
                 required
               />
             </CCol>
-            {!bobina && (
-              <CCol md={6}>
-                <CFormLabel>Peso Actual (kg)</CFormLabel>
-                <CFormInput
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  name="peso_actual"
-                  value={formData.peso_actual || formData.peso_inicial || ""}
-                  onChange={handleChange}
-                  invalid={!!errors.peso_actual}
-                  feedbackInvalid={errors.peso_actual?.[0]}
-                  required
-                />
-              </CCol>
-            )}
-            <CCol md={6}>
+            <CCol md={12}>
               <CFormLabel>Metros Lineales Inicial (m)</CFormLabel>
               <CFormInput
                 type="number"
@@ -285,35 +268,67 @@ export default function BobinaForm({
                 feedbackInvalid={errors.metros_lineales_inicial?.[0]}
               />
             </CCol>
+
+            {bobina && (
+              <>
+                <CCol md={6}>
+                  <CFormLabel>Peso Actual (kg)</CFormLabel>
+                  <CFormInput
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="peso_actual"
+                    value={formData.peso_actual || ""}
+                    onChange={handleChange}
+                    invalid={!!errors.peso_actual}
+                    feedbackInvalid={errors.peso_actual?.[0]}
+                  />
+                </CCol>
+                <CCol md={6}>
+                  <CFormLabel>Metros Lineales Actual (m)</CFormLabel>
+                  <CFormInput
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="metros_lineales_actual"
+                    value={formData.metros_lineales_actual || ""}
+                    onChange={handleChange}
+                    invalid={!!errors.metros_lineales_actual}
+                    feedbackInvalid={errors.metros_lineales_actual?.[0]}
+                  />
+                </CCol>
+                <CCol md={12}>
+                  <CFormLabel>Estado Bobina</CFormLabel>
+                  <CFormSelect
+                    name="estado_bobina"
+                    value={formData.estado_bobina || "En Inventario"}
+                    onChange={handleChange}
+                    invalid={!!errors.estado_bobina}
+                    feedbackInvalid={errors.estado_bobina?.[0]}
+                  >
+                    <option value="En Inventario">En Inventario</option>
+                    <option value="En Producción">En Producción</option>
+                    <option value="Agotado">Agotado</option>
+                  </CFormSelect>
+                </CCol>
+              </>
+            )}
+
             {!bobina && (
-              <CCol md={6}>
-                <CFormLabel>Metros Lineales Actual (m)</CFormLabel>
+              <>
                 <CFormInput
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="hidden"
+                  name="peso_actual"
+                  value={formData.peso_actual || formData.peso_inicial || ""}
+                />
+                <CFormInput
+                  type="hidden"
                   name="metros_lineales_actual"
                   value={formData.metros_lineales_actual || formData.metros_lineales_inicial || ""}
-                  onChange={handleChange}
-                  invalid={!!errors.metros_lineales_actual}
-                  feedbackInvalid={errors.metros_lineales_actual?.[0]}
                 />
-              </CCol>
+              </>
             )}
-            <CCol md={6}>
-              <CFormLabel>Estado Bobina</CFormLabel>
-              <CFormSelect
-                name="estado_bobina"
-                value={formData.estado_bobina || "En Inventario"}
-                onChange={handleChange}
-                invalid={!!errors.estado_bobina}
-                feedbackInvalid={errors.estado_bobina?.[0]}
-              >
-                <option value="En Inventario">En Inventario</option>
-                <option value="En Producción">En Producción</option>
-                <option value="Agotado">Agotado</option>
-              </CFormSelect>
-            </CCol>
+
           </CRow>
         </CModalBody>
         <CModalFooter>
