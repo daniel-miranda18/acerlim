@@ -12,6 +12,7 @@ import {
   cilLockLocked,
   cilLayers,
   cilTags,
+  cilTruck,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { NavLink } from "react-router-dom";
@@ -19,10 +20,11 @@ import { useTheme } from "../../context/ThemeContext";
 
 interface SidebarProps {
   visible: boolean;
+  onVisibleChange: (visible: boolean) => void;
   onToggle: () => void;
 }
 
-export default function Sidebar({ visible, onToggle }: SidebarProps) {
+export default function Sidebar({ visible, onVisibleChange, onToggle }: SidebarProps) {
   const { theme } = useTheme();
 
   return (
@@ -31,6 +33,7 @@ export default function Sidebar({ visible, onToggle }: SidebarProps) {
       colorScheme={theme}
       position="fixed"
       visible={visible}
+      onVisibleChange={onVisibleChange}
     >
       <div
         className="d-flex align-items-center gap-3 px-4"
@@ -112,6 +115,26 @@ export default function Sidebar({ visible, onToggle }: SidebarProps) {
           >
             <CIcon icon={cilTags} customClassName="nav-icon" />
             Tipos de Calamina
+          </NavLink>
+        </CNavItem>
+
+        <CNavItem>
+          <NavLink
+            to="/proveedores"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilTruck} customClassName="nav-icon" />
+            Proveedores
+          </NavLink>
+        </CNavItem>
+
+        <CNavItem>
+          <NavLink
+            to="/lotes"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilLayers} customClassName="nav-icon" />
+            Lotes
           </NavLink>
         </CNavItem>
         {/*

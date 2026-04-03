@@ -4,7 +4,6 @@ import { formatDate, now } from "../../shared/utils/date";
 
 const formatBobina = (b: any) => ({
   ...b,
-  fecha_ingreso: formatDate(b.fecha_ingreso),
   fecha_creacion: formatDate(b.fecha_creacion),
   fecha_actualizacion: formatDate(b.fecha_actualizacion),
 });
@@ -13,6 +12,11 @@ export const bobinaRepository = {
   findAll: async () => {
     const bobinas = await prisma.bobina.findMany({
       where: { estado: 1 },
+      include: { 
+        lote_rel: {
+          include: { proveedor_rel: true }
+        }
+      },
       orderBy: { id_bobina: "desc" },
     });
     return bobinas.map(formatBobina);
@@ -21,24 +25,16 @@ export const bobinaRepository = {
   findById: async (id: number) => {
     const b = await prisma.bobina.findUnique({
       where: { id_bobina: id },
+      include: { 
+        lote_rel: {
+          include: { proveedor_rel: true }
+        }
+      },
     });
     if (!b) return null;
     return formatBobina(b);
   },
 
-  findByCodigoLote: async (codigo_lote: string, ignoreId?: number) => {
-    const where: any = {
-      codigo_lote,
-      estado: 1,
-    };
-    if (ignoreId) {
-      where.id_bobina = { not: ignoreId };
-    }
-    const b = await prisma.bobina.findFirst({
-      where,
-    });
-    return b ? formatBobina(b) : null;
-  },
 
   getStockPorTipo: async () => {
     const grouped = await prisma.bobina.groupBy({
@@ -61,12 +57,9 @@ export const bobinaRepository = {
   },
 
   create: async (data: CrearBobinaDTO, usuarioCreacion: number) => {
-    // Append T12:00:00 to prevent timezone shift that causes next-day bug
-    const fecha_ingreso = data.fecha_ingreso ? new Date(data.fecha_ingreso + "T12:00:00") : null;
     const b = await prisma.bobina.create({
       data: { 
         ...data, 
-        fecha_ingreso,
         peso_actual: data.peso_actual ?? data.peso_inicial,
         metros_lineales_actual: data.metros_lineales_actual ?? data.metros_lineales_inicial,
         usuario_creacion: usuarioCreacion 
@@ -80,7 +73,6 @@ export const bobinaRepository = {
       where: { id_bobina: id },
       data: {
         ...data,
-        fecha_ingreso: data.fecha_ingreso ? new Date(data.fecha_ingreso + "T12:00:00") : undefined,
         fecha_actualizacion: now(),
         usuario_actualizacion: usuarioActualizacion,
       },

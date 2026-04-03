@@ -11,7 +11,10 @@ export const requireAuth = (
     "jwt",
     { session: false },
     (err: any, user: any, info: any) => {
-      if (err) return next(err);
+      if (err) {
+        console.log("Auth Error:", err);
+        return next(err);
+      }
 
       if (!user) {
         return unauthorized(res, info?.message || "No autorizado");

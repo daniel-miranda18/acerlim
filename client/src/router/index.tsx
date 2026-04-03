@@ -10,6 +10,8 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoginPage from "../pages/login/LoginPage";
 import UnauthorizedPage from "../pages/auth/UnauthorizedPage";
 import ModeladoPage from "../pages/modelado/ModeladoPage";
+import ProveedoresPage from "../pages/proveedores/ProveedoresPage";
+import LotesPage from "../pages/bobinas/LotesPage";
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +38,8 @@ export const router = createBrowserRouter([
           { path: "bobinas", element: <BobinasPage /> },
           { path: "productos", element: <ProductosPage /> },
           { path: "modelado", element: <ModeladoPage /> },
+          { path: "proveedores", element: <ProveedoresPage /> },
+          { path: "lotes", element: <LotesPage /> },
         ],
       },
     ],

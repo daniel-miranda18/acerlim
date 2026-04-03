@@ -15,7 +15,9 @@ export const useBobinas = () => {
       setBobinas(res.data.data);
       setError(null);
     } catch (e: any) {
-      setError(e.message || "Error al cargar bobinas");
+      if (e.response?.status !== 401) {
+        setError(e.message || "Error al cargar bobinas");
+      }
     } finally {
       setLoading(false);
     }
@@ -28,7 +30,9 @@ export const useBobinas = () => {
       setStock(res.data.data);
       setError(null);
     } catch (e: any) {
-      setError(e.message || "Error al cargar stock");
+      if (e.response?.status !== 401) {
+        setError(e.message || "Error al cargar stock");
+      }
     } finally {
       setLoading(false);
     }

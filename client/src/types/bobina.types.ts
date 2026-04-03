@@ -1,17 +1,19 @@
+
 export interface Bobina {
   id_bobina: number;
-  codigo_lote: string;
+  id_lote: number;
+  lote_rel?: any; 
   color: string;
-  espesor: number;
-  ancho: number;
-  peso_inicial: number;
-  peso_actual: number;
-  metros_lineales_inicial: number;
-  metros_lineales_actual: number;
-  fecha_ingreso: string;
-  proveedor: string;
-  estado_bobina: string;
+  espesor: number | string;
+  ancho: number | string;
+  peso_inicial: number | string;
+  peso_actual: number | string;
+  metros_lineales_inicial?: number | string | null;
+  metros_lineales_actual?: number | string | null;
+  estado_bobina: "En Inventario" | "En Producción" | "Agotado";
   estado: number;
+  fecha_creacion: string;
+  fecha_actualizacion?: string | null;
 }
 
 export interface StockBobina {

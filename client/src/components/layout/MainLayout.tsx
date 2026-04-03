@@ -12,25 +12,39 @@ export default function MainLayout() {
   const location = useLocation();
 
   useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      setSidebarVisible(!mobile);
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    
+    const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      const isNowMobile = e.matches;
+      setIsMobile(isNowMobile);
+      setSidebarVisible(!isNowMobile);
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    // Initial check
+    handleMediaChange(mediaQuery);
+
+    // Listener for changes (like opening/closing F12)
+    mediaQuery.addEventListener("change", handleMediaChange);
+    return () => mediaQuery.removeEventListener("change", handleMediaChange);
   }, []);
 
   // En móvil cierra el sidebar al navegar
   useEffect(() => {
-    if (isMobile) setSidebarVisible(false);
-  }, [location, isMobile]);
+    if (isMobile && sidebarVisible) {
+      setSidebarVisible(false);
+    }
+  }, [location.pathname, isMobile]);
 
   const toggleSidebar = () => setSidebarVisible((prev) => !prev);
+  const handleVisibleChange = (visible: boolean) => setSidebarVisible(visible);
 
   return (
     <div>
-      <Sidebar visible={sidebarVisible} onToggle={toggleSidebar} />
+      <Sidebar 
+        visible={sidebarVisible} 
+        onVisibleChange={handleVisibleChange}
+        onToggle={toggleSidebar} 
+      />
 
       {isMobile && sidebarVisible && (
         <div

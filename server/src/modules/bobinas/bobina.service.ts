@@ -13,19 +13,11 @@ export const bobinaService = {
   getStockPorTipo: () => bobinaRepository.getStockPorTipo(),
 
   crear: async (data: CrearBobinaDTO, usuarioId: number) => {
-    if (data.codigo_lote) {
-      const existe = await bobinaRepository.findByCodigoLote(data.codigo_lote);
-      if (existe) throw new Error("El código de lote ya existe en el inventario");
-    }
     return bobinaRepository.create(data, usuarioId);
   },
 
   actualizar: async (id: number, data: ActualizarBobinaDTO, usuarioId: number) => {
     await bobinaService.obtener(id);
-    if (data.codigo_lote) {
-      const existe = await bobinaRepository.findByCodigoLote(data.codigo_lote, id);
-      if (existe) throw new Error("El código de lote ya existe en otro registro");
-    }
     return bobinaRepository.update(id, data, usuarioId);
   },
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { Bobina } from "../../types/bobina.types";
 import {
   CModal,
@@ -15,6 +15,7 @@ import {
   CCol,
   CSpinner,
 } from "@coreui/react";
+import { useLotes } from "../../hooks/useLotes";
 
 interface BobinaFormProps {
   visible: boolean;
@@ -33,17 +34,11 @@ export default function BobinaForm({
   loading,
   errors = {},
 }: BobinaFormProps) {
-  const getLocalDate = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  const { lotes } = useLotes();
 
   const [formData, setFormData] = useState<Partial<Bobina>>(
     bobina || {
-      codigo_lote: "",
+      id_lote: 0,
       color: "",
       espesor: 0,
       ancho: 0,
@@ -51,11 +46,18 @@ export default function BobinaForm({
       peso_actual: 0,
       metros_lineales_inicial: 0,
       metros_lineales_actual: 0,
-      proveedor: "",
       estado_bobina: "En Inventario",
-      fecha_ingreso: getLocalDate(),
     }
   );
+
+  const [loteSearchTerm, setLoteSearchTerm] = useState("");
+  const [showLoteDropdown, setShowLoteDropdown] = useState(false);
+
+  const filteredLotes = useMemo(() => {
+    return lotes.filter((l) =>
+      l.codigo_lote.toLowerCase().includes(loteSearchTerm.toLowerCase())
+    );
+  }, [lotes, loteSearchTerm]);
 
   // Update form data when editing
   useEffect(() => {
@@ -68,12 +70,14 @@ export default function BobinaForm({
         peso_actual: Number(bobina.peso_actual) || 0,
         metros_lineales_inicial: Number(bobina.metros_lineales_inicial) || 0,
         metros_lineales_actual: Number(bobina.metros_lineales_actual) || 0,
-        fecha_ingreso: bobina.fecha_ingreso ? bobina.fecha_ingreso.substring(0, 10) : "",
         estado_bobina: bobina.estado_bobina || "En Inventario",
       });
+      if (bobina.lote_rel) {
+        setLoteSearchTerm(bobina.lote_rel.codigo_lote);
+      }
     } else {
       setFormData({
-        codigo_lote: "",
+        id_lote: 0,
         color: "",
         espesor: 0,
         ancho: 0,
@@ -81,19 +85,26 @@ export default function BobinaForm({
         peso_actual: 0,
         metros_lineales_inicial: 0,
         metros_lineales_actual: 0,
-        proveedor: "",
         estado_bobina: "En Inventario",
-        fecha_ingreso: getLocalDate(),
       });
+      setLoteSearchTerm("");
     }
-  }, [bobina, visible]);
+  }, [bobina, visible, lotes]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const isNumber = ["espesor", "ancho", "peso_inicial", "peso_actual", "metros_lineales_inicial", "metros_lineales_actual"].includes(name);
+    const isNumber = [
+      "espesor",
+      "ancho",
+      "peso_inicial",
+      "peso_actual",
+      "metros_lineales_inicial",
+      "metros_lineales_actual",
+      "id_proveedor",
+    ].includes(name);
     setFormData((prev: any) => ({
       ...prev,
-      [name]: isNumber ? Number(value) : value,
+      [name]: isNumber ? (value === "" ? null : Number(value)) : value,
     }));
   };
 
@@ -128,29 +139,70 @@ export default function BobinaForm({
       <CForm onSubmit={handleSubmit}>
         <CModalBody>
           <CRow className="g-3">
-            <CCol md={6}>
-              <CFormLabel>Código Lote</CFormLabel>
-              <CFormInput
-                name="codigo_lote"
-                value={formData.codigo_lote || ""}
-                onChange={handleChange}
-                invalid={!!errors.codigo_lote}
-                feedbackInvalid={errors.codigo_lote?.[0]}
-                required
-              />
+            <CCol md={12}>
+              <CFormLabel>Lote (Buscador)</CFormLabel>
+              <div className="position-relative">
+                <CFormInput
+                  placeholder="Buscar lote por código..."
+                  value={loteSearchTerm}
+                  onChange={(e) => {
+                    setLoteSearchTerm(e.target.value);
+                    setShowLoteDropdown(true);
+                  }}
+                  onFocus={() => setShowLoteDropdown(true)}
+                  invalid={!!errors.id_lote}
+                  feedbackInvalid={errors.id_lote?.[0]}
+                  autoComplete="off"
+                  required
+                />
+                {showLoteDropdown && (loteSearchTerm || lotes.length > 0) && (
+                  <ul 
+                    className="dropdown-menu show w-100 shadow-sm" 
+                    style={{ 
+                      maxHeight: "200px", 
+                      overflowY: "auto",
+                      top: "100%",
+                      zIndex: 1050 
+                    }}
+                  >
+                    {filteredLotes.length === 0 ? (
+                      <li className="dropdown-item text-secondary small">
+                        No se encontraron lotes. 
+                        <CButton size="sm" variant="ghost" color="primary" className="ms-2" onClick={() => window.location.href='/lotes'}>
+                          Crear Lote
+                        </CButton>
+                      </li>
+                    ) : (
+                      filteredLotes.map((l) => (
+                        <li 
+                          key={l.id_lote} 
+                          className="dropdown-item d-flex justify-content-between align-items-center" 
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, id_lote: l.id_lote }));
+                            setLoteSearchTerm(l.codigo_lote);
+                            setShowLoteDropdown(false);
+                          }}
+                        >
+                          <span>{l.codigo_lote}</span>
+                          <small className="text-secondary">
+                            {l.proveedor_rel?.nombre || "Sin proveedor"} - {l.fecha_ingreso?.substring(0, 10)}
+                          </small>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                )}
+                {showLoteDropdown && (
+                  <div 
+                    className="position-fixed top-0 start-0 w-100 h-100" 
+                    style={{ zIndex: 1040 }}
+                    onClick={() => setShowLoteDropdown(false)}
+                  />
+                )}
+              </div>
             </CCol>
-            <CCol md={6}>
-              <CFormLabel>Fecha de Ingreso</CFormLabel>
-              <CFormInput
-                type="date"
-                name="fecha_ingreso"
-                value={formData.fecha_ingreso || ""}
-                onChange={handleChange}
-                invalid={!!errors.fecha_ingreso}
-                feedbackInvalid={errors.fecha_ingreso?.[0]}
-                required
-              />
-            </CCol>
+            
             <CCol md={4}>
               <CFormLabel>Color</CFormLabel>
               <CFormInput
@@ -261,16 +313,6 @@ export default function BobinaForm({
                 <option value="En Producción">En Producción</option>
                 <option value="Agotado">Agotado</option>
               </CFormSelect>
-            </CCol>
-            <CCol md={bobina ? 12 : 6}>
-              <CFormLabel>Proveedor</CFormLabel>
-              <CFormInput
-                name="proveedor"
-                value={formData.proveedor || ""}
-                onChange={handleChange}
-                invalid={!!errors.proveedor}
-                feedbackInvalid={errors.proveedor?.[0]}
-              />
             </CCol>
           </CRow>
         </CModalBody>

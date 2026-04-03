@@ -128,8 +128,8 @@ export default function BobinasPage() {
 
   const handleExportarHistorial = () => {
     const data = tableHist.getFilteredRowModel().rows.map((row) => ({
-      "Lote": row.original.codigo_lote,
-      "Ingreso": (row.original.fecha_ingreso || "").substring(0, 10),
+      "Lote": row.original.lote_rel?.codigo_lote || "—",
+      "Ingreso": (row.original.lote_rel?.fecha_ingreso || "").substring(0, 10),
       "Color": row.original.color,
       "Espesor": row.original.espesor,
       "Ancho": row.original.ancho,
@@ -162,11 +162,22 @@ export default function BobinasPage() {
 
   const columnsHist = useMemo<ColumnDef<Bobina>[]>(
     () => [
-      { header: "Lote", accessorKey: "codigo_lote" },
+      { 
+        header: "Lote", 
+        accessorKey: "lote_rel",
+        cell: ({ row }) => row.original.lote_rel?.codigo_lote || "—" 
+      },
       { 
         header: "Ingreso", 
-        accessorKey: "fecha_ingreso",
-        cell: ({ getValue }) => (getValue() as string || "").substring(0, 10),
+        accessorKey: "lote_rel",
+        id: "fecha_ingreso",
+        cell: ({ row }) => (row.original.lote_rel?.fecha_ingreso || "").substring(0, 10),
+      },
+      {
+        header: "Proveedor",
+        accessorKey: "lote_rel",
+        id: "proveedor",
+        cell: ({ row }) => row.original.lote_rel?.proveedor_rel?.nombre || "—",
       },
       { header: "Color", accessorKey: "color" },
       { header: "Espesor", accessorKey: "espesor" },
@@ -491,7 +502,7 @@ export default function BobinasPage() {
       <ConfirmModal
         visible={confirmVisible}
         title="Eliminar Bobina"
-        message={`¿Estás seguro que deseas eliminar la bobina con lote "${selectedBobina?.codigo_lote}"?`}
+        message={`¿Estás seguro que deseas eliminar la bobina del lote "${selectedBobina?.lote_rel?.codigo_lote}"?`}
         onConfirm={handleConfirmEliminar}
         onCancel={() => setConfirmVisible(false)}
         loading={formLoading}
