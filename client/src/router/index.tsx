@@ -9,9 +9,9 @@ import ProductosPage from "../pages/productos/ProductosPage";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoginPage from "../pages/login/LoginPage";
 import UnauthorizedPage from "../pages/auth/UnauthorizedPage";
-import ModeladoPage from "../pages/modelado/ModeladoPage";
 import ProveedoresPage from "../pages/proveedores/ProveedoresPage";
 import LotesPage from "../pages/bobinas/LotesPage";
+import CotizacionTechoPage from "../pages/cotizacion/CotizacionTechoPage";
 
 export const router = createBrowserRouter([
   {
@@ -37,9 +37,9 @@ export const router = createBrowserRouter([
           { path: "permisos", element: <PermisosPage /> },
           { path: "bobinas", element: <BobinasPage /> },
           { path: "productos", element: <ProductosPage /> },
-          { path: "modelado", element: <ModeladoPage /> },
           { path: "proveedores", element: <ProveedoresPage /> },
           { path: "lotes", element: <LotesPage /> },
+          { path: "cotizacion", element: <CotizacionTechoPage /> },
         ],
       },
     ],

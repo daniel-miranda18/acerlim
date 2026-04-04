@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { productoService } from "./producto.service";
+import { crearProductoSchema, actualizarProductoSchema } from "./producto.schema";
 import {
   ok,
   created,
@@ -29,7 +30,8 @@ export const productoController = {
 
   crear: async (req: Request, res: Response) => {
     try {
-      const data = await productoService.crear(req.body);
+      const validatedData = crearProductoSchema.parse(req.body);
+      const data = await productoService.crear(validatedData);
       created(res, data);
     } catch (e: any) {
       badRequest(res, e.message);
@@ -38,9 +40,10 @@ export const productoController = {
 
   actualizar: async (req: Request, res: Response) => {
     try {
+      const validatedData = actualizarProductoSchema.parse(req.body);
       const data = await productoService.actualizar(
         Number(req.params.id),
-        req.body,
+        validatedData as any,
       );
       ok(res, data, "Actualizado correctamente");
     } catch (e: any) {

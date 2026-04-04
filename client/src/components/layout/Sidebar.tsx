@@ -11,6 +11,7 @@ import {
   cilShieldAlt,
   cilLockLocked,
   cilLayers,
+  cilHouse,
   cilTags,
   cilTruck,
 } from "@coreui/icons";
@@ -137,14 +138,14 @@ export default function Sidebar({ visible, onVisibleChange, onToggle }: SidebarP
             Lotes
           </NavLink>
         </CNavItem>
-   
+
         <CNavItem>
           <NavLink
-            to="/modelado"
+            to="/cotizacion"
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
           >
-            <CIcon icon={cilLayers} customClassName="nav-icon" />
-            Modelado 2D
+            <CIcon icon={cilHouse} customClassName="nav-icon" />
+            Cotización Techo
           </NavLink>
         </CNavItem>
         

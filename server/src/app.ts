@@ -11,14 +11,16 @@ import permisoRoutes from "./modules/permisos/permiso.routes";
 import rolPermisoRoutes from "./modules/rol_permiso/rol_permiso.routes";
 import bobinaRoutes from "./modules/bobinas/bobina.routes";
 import productoRoutes from "./modules/productos/producto.routes";
+import tipoProductoRoutes from "./modules/productos/tipo-producto.routes";
 import dibujoRoutes from "./modules/productos/dibujo.routes";
 import proveedorRoutes from "./modules/proveedores/proveedor.routes";
 import loteRoutes from "./modules/lotes/lote.routes";
+import pedidoRoutes from "./modules/pedidos/pedido.routes";
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
@@ -29,8 +31,11 @@ app.use("/api/permisos", requireAuth, requireRole(["gerente"]), permisoRoutes);
 app.use("/api/roles/:id/permisos", requireAuth, requireRole(["gerente"]), rolPermisoRoutes);
 app.use("/api/bobinas", requireAuth, bobinaRoutes);
 app.use("/api/productos", requireAuth, productoRoutes);
+app.use("/api/tipos-productos", requireAuth, tipoProductoRoutes);
+app.use("/api/dibujos-calaminas", requireAuth, dibujoRoutes);
 app.use("/api/proveedores", requireAuth, proveedorRoutes);
 app.use("/api/lotes", requireAuth, loteRoutes);
+app.use("/api/pedidos", requireAuth, pedidoRoutes);
 
 app.use(errorMiddleware);
 

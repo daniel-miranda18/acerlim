@@ -13,13 +13,16 @@ import {
   CRow,
   CCol,
   CSpinner,
+  CFormSelect,
 } from "@coreui/react";
+import type { TipoProducto } from "../../types/producto.types";
 
 interface ProductoFormProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (data: Partial<Producto>) => Promise<void>;
   producto: Producto | null;
+  tipos: TipoProducto[];
   loading: boolean;
   errors?: Record<string, string[]>;
 }
@@ -29,14 +32,14 @@ export default function ProductoForm({
   onClose,
   onSubmit,
   producto,
+  tipos,
   loading,
   errors = {},
 }: ProductoFormProps) {
   const [formData, setFormData] = useState<Partial<Producto>>(
     producto || {
-      nombre: "",
+      id_tipo_producto: undefined,
       descripcion: "",
-      color: "",
       medida_largo: 0,
       medida_ancho: 0,
     }
@@ -51,9 +54,8 @@ export default function ProductoForm({
       });
     } else {
       setFormData({
-        nombre: "",
+        id_tipo_producto: undefined,
         descripcion: "",
-        color: "",
         medida_largo: 0,
         medida_ancho: 0,
       });
@@ -61,18 +63,19 @@ export default function ProductoForm({
   }, [producto, visible]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? Number(value) : value,
+      [name]: type === "number" || name === "id_tipo_producto" ? Number(value) : value,
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const submitData = { ...formData };
+    delete (submitData as any).nombre;
     if (producto) {
       delete (submitData as any).id_tipo_calamina;
       delete (submitData as any).fecha_creacion;
@@ -91,15 +94,24 @@ export default function ProductoForm({
         <CModalBody>
           <CRow className="g-3">
             <CCol md={12}>
-              <CFormLabel>Nombre del Tipo/Producto</CFormLabel>
-              <CFormInput
-                name="nombre"
-                value={formData.nombre || ""}
+              <CFormLabel>Tipo de Calamina</CFormLabel>
+              <CFormSelect
+                name="id_tipo_producto"
+                value={formData.id_tipo_producto || ""}
                 onChange={handleChange}
-                invalid={!!errors.nombre}
-                feedbackInvalid={errors.nombre?.[0]}
+                invalid={!!errors.id_tipo_producto}
                 required
-              />
+              >
+                <option value="">Seleccione un tipo...</option>
+                {tipos.map((t) => (
+                  <option key={t.id_tipo_producto} value={t.id_tipo_producto}>
+                    {t.nombre}
+                  </option>
+                ))}
+              </CFormSelect>
+              {errors.id_tipo_producto && (
+                <div className="invalid-feedback d-block">{errors.id_tipo_producto[0]}</div>
+              )}
             </CCol>
             <CCol md={12}>
               <CFormLabel>Descripción</CFormLabel>
@@ -111,18 +123,7 @@ export default function ProductoForm({
                 feedbackInvalid={errors.descripcion?.[0]}
               />
             </CCol>
-            <CCol md={4}>
-              <CFormLabel>Color</CFormLabel>
-              <CFormInput
-                name="color"
-                value={formData.color || ""}
-                onChange={handleChange}
-                invalid={!!errors.color}
-                feedbackInvalid={errors.color?.[0]}
-                required
-              />
-            </CCol>
-            <CCol md={4}>
+            <CCol md={6}>
               <CFormLabel>Largo (m)</CFormLabel>
               <CFormInput
                 type="number"
@@ -136,7 +137,7 @@ export default function ProductoForm({
                 required
               />
             </CCol>
-            <CCol md={4}>
+            <CCol md={6}>
               <CFormLabel>Ancho (m)</CFormLabel>
               <CFormInput
                 type="number"

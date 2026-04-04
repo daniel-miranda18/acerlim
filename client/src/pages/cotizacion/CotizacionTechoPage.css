@@ -1,0 +1,586 @@
+/* ===== Stepper ===== */
+.cotizacion-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 2rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--cui-card-bg);
+  border-radius: var(--cui-border-radius-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  border: 1px solid var(--cui-border-color);
+}
+
+.stepper-step {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  cursor: pointer;
+  padding: .5rem .85rem;
+  border-radius: .5rem;
+  transition: all .2s ease;
+  position: relative;
+}
+.stepper-step:hover {
+  background: rgba(37,99,235,.06);
+}
+
+.stepper-step .step-number {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: .8rem;
+  flex-shrink: 0;
+  border: 2px solid var(--cui-border-color);
+  color: var(--cui-secondary-color);
+  background: var(--cui-secondary-bg);
+  transition: all .3s ease;
+}
+.stepper-step.active .step-number {
+  background: linear-gradient(135deg, #2563EB, #1d4ed8);
+  color: #fff;
+  border-color: #2563EB;
+  box-shadow: 0 2px 10px rgba(37,99,235,.35);
+}
+.stepper-step.completed .step-number {
+  background: #22c55e;
+  color: #fff;
+  border-color: #22c55e;
+}
+
+.stepper-step .step-label {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--cui-secondary-color);
+  white-space: nowrap;
+  transition: color .2s ease;
+}
+.stepper-step.active .step-label {
+  color: #2563EB;
+}
+.stepper-step.completed .step-label {
+  color: #22c55e;
+}
+
+.stepper-connector {
+  width: 50px;
+  height: 2px;
+  background: var(--cui-border-color);
+  flex-shrink: 0;
+  border-radius: 2px;
+  transition: background .3s ease;
+}
+.stepper-connector.done {
+  background: linear-gradient(90deg, #22c55e, #2563EB);
+}
+
+/* ===== Product Cards ===== */
+.producto-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 768px) {
+  .producto-grid { grid-template-columns: 1fr; }
+}
+
+.producto-card {
+  padding: 1.25rem;
+  border: 2px solid var(--cui-border-color);
+  border-radius: var(--cui-border-radius-lg);
+  cursor: pointer;
+  transition: all .25s ease;
+  background: var(--cui-card-bg);
+  position: relative;
+  overflow: hidden;
+}
+.producto-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(90deg, transparent, transparent);
+  transition: background .3s ease;
+}
+.producto-card:hover {
+  border-color: rgba(37,99,235,.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(37,99,235,.1);
+}
+.producto-card:hover::before {
+  background: linear-gradient(90deg, #2563EB, #06b6d4);
+}
+.producto-card.selected {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.15), 0 4px 16px rgba(37,99,235,.1);
+}
+.producto-card.selected::before {
+  background: linear-gradient(90deg, #2563EB, #06b6d4);
+}
+.producto-card .check-icon {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #2563EB;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .75rem;
+  opacity: 0;
+  transform: scale(.5);
+  transition: all .25s ease;
+}
+.producto-card.selected .check-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+.producto-card .prod-nombre {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: .35rem;
+}
+.producto-card .prod-color {
+  font-size: .75rem;
+  display: inline-block;
+  padding: .15rem .6rem;
+  border-radius: 20px;
+  background: rgba(6,182,212,.12);
+  color: #06b6d4;
+  font-weight: 600;
+  margin-bottom: .5rem;
+}
+.producto-card .prod-medidas {
+  font-size: .82rem;
+  color: var(--cui-secondary-color);
+  font-weight: 500;
+}
+
+/* ===== Slider Section ===== */
+.slider-group {
+  margin-bottom: 1.75rem;
+}
+.slider-group label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--cui-body-color);
+  margin-bottom: .5rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.slider-group label .slider-value {
+  font-size: 1rem;
+  background: linear-gradient(135deg, #2563EB, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+.slider-group input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 4px;
+  background: var(--cui-border-color);
+  outline: none;
+  cursor: pointer;
+}
+.slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB, #1d4ed8);
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(37,99,235,.35);
+  transition: transform .15s ease;
+}
+.slider-group input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* ===== Metric Cards ===== */
+.metric-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .75rem;
+  margin-top: 1.25rem;
+}
+.metric-card {
+  text-align: center;
+  padding: 1rem .75rem;
+  border-radius: var(--cui-border-radius);
+  border: 1px solid var(--cui-border-color);
+  background: var(--cui-card-bg);
+  transition: all .2s ease;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+}
+.metric-card .metric-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #2563EB, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.metric-card .metric-label {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--cui-secondary-color);
+  font-weight: 600;
+  margin-top: .25rem;
+}
+
+/* ===== Konva Canvas ===== */
+.canvas-wrapper {
+  position: relative;
+  background: var(--cui-secondary-bg);
+  border-radius: var(--cui-border-radius-lg);
+  border: 1px solid var(--cui-border-color);
+  overflow: hidden;
+}
+.canvas-grid-bg {
+  background-color: var(--cui-elevation-base, #ffffff);
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 25px 25px;
+  background-position: center;
+}
+[data-coreui-theme='dark'] .canvas-grid-bg {
+  background-color: #1e293b;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--cui-border-color);
+  background: var(--cui-card-bg);
+}
+.canvas-toolbar .btn-view {
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .35rem .85rem;
+  border-radius: 20px;
+  border: 1px solid var(--cui-border-color);
+  background: transparent;
+  color: var(--cui-body-color);
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.canvas-toolbar .btn-view:hover {
+  background: rgba(37,99,235,.08);
+  border-color: rgba(37,99,235,.3);
+}
+.canvas-toolbar .btn-view.active {
+  background: #2563EB;
+  color: #fff;
+  border-color: #2563EB;
+}
+.canvas-legend {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: .6rem 1rem;
+  border-top: 1px solid var(--cui-border-color);
+  background: var(--cui-card-bg);
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--cui-secondary-color);
+}
+.canvas-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.canvas-legend .legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+/* ===== Save Form ===== */
+.save-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.save-form .form-group {
+  margin-bottom: 1.25rem;
+}
+.save-form .form-group label {
+  font-size: .78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: .4rem;
+  display: block;
+  color: var(--cui-body-color);
+}
+
+/* ===== Navigation Buttons ===== */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--cui-border-color);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: fadeInUp .35s ease forwards;
+}
+
+/* ===== Cola de Pato — Toggle Button ===== */
+.cola-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  width: 100%;
+  padding: .85rem 1.25rem;
+  border-radius: var(--cui-border-radius-lg);
+  border: 2px dashed var(--cui-border-color);
+  background: transparent;
+  color: var(--cui-secondary-color);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s ease;
+}
+.cola-toggle-btn:hover {
+  border-color: rgba(217,119,6,.5);
+  color: #d97706;
+  background: rgba(217,119,6,.04);
+}
+.cola-toggle-btn.active {
+  border-style: solid;
+  border-color: #d97706;
+  background: rgba(217,119,6,.08);
+  color: #d97706;
+}
+.cola-toggle-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--cui-secondary-bg);
+  border: 2px solid var(--cui-border-color);
+  color: var(--cui-secondary-color);
+  transition: all .3s ease;
+}
+.cola-toggle-icon.active {
+  background: #d97706;
+  border-color: #d97706;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* ===== Cola de Pato — Collapsible Panel ===== */
+.cola-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .4s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+  opacity: 0;
+}
+.cola-panel.open {
+  max-height: 600px;
+  opacity: 1;
+}
+.cola-panel-inner {
+  padding: 1.25rem 0 0;
+}
+
+/* ===== Cola de Pato — Counter ===== */
+.cola-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border-radius: .5rem;
+  border: 1px solid var(--cui-border-color);
+  overflow: hidden;
+}
+.cola-counter-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--cui-secondary-bg);
+  color: var(--cui-body-color);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.cola-counter-btn:hover:not(:disabled) {
+  background: rgba(217,119,6,.12);
+  color: #d97706;
+}
+.cola-counter-btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+.cola-counter-value {
+  width: 50px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #d97706;
+  background: var(--cui-card-bg);
+  border-left: 1px solid var(--cui-border-color);
+  border-right: 1px solid var(--cui-border-color);
+  padding: .4rem;
+}
+
+/* ===== Cola de Pato — Info Cards ===== */
+.cola-info-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .6rem;
+  margin-top: .75rem;
+}
+.cola-info-card {
+  text-align: center;
+  padding: .75rem .5rem;
+  border-radius: var(--cui-border-radius);
+  border: 1px solid var(--cui-border-color);
+  background: var(--cui-card-bg);
+}
+.cola-info-card.highlight {
+  border-color: #d97706;
+  background: rgba(217,119,6,.06);
+}
+.cola-info-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #d97706;
+}
+.cola-info-card.highlight .cola-info-value {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.cola-info-label {
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--cui-secondary-color);
+  font-weight: 600;
+  margin-top: .15rem;
+}
+
+/* ===== Total Summary Bar ===== */
+.total-resumen-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  padding: .5rem 0;
+}
+.total-resumen-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.total-resumen-num {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--cui-body-color);
+}
+.total-resumen-item.cola .total-resumen-num {
+  color: #d97706;
+}
+.total-resumen-item.total .total-resumen-num {
+  background: linear-gradient(135deg, #2563EB, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.5rem;
+}
+.total-resumen-label {
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--cui-secondary-color);
+  font-weight: 600;
+}
+.total-resumen-op {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--cui-secondary-color);
+  margin: 0 .25rem;
+}
+@media (max-width: 576px) {
+  .cola-info-cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== Cola de Pato — Strips Table ===== */
+.cola-strips-table {
+  border: 1px solid var(--cui-border-color);
+  border-radius: var(--cui-border-radius);
+  overflow: hidden;
+}
+.cola-strip-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr;
+  padding: .5rem .75rem;
+  background: var(--cui-secondary-bg);
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--cui-secondary-color);
+  border-bottom: 1px solid var(--cui-border-color);
+}
+.cola-strip-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr;
+  padding: .45rem .75rem;
+  font-size: .82rem;
+  border-bottom: 1px solid var(--cui-border-color);
+  transition: background .15s ease;
+}
+.cola-strip-row:last-child {
+  border-bottom: none;
+}
+.cola-strip-row:hover {
+  background: rgba(217,119,6,.06);
+}
+.cola-strip-num {
+  font-weight: 800;
+  color: #d97706;
+}
+.cola-strip-val {
+  font-weight: 600;
+  color: var(--cui-body-color);
+}

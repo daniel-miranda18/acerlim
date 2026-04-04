@@ -12,6 +12,7 @@ export const productoRepository = {
   findAll: async () => {
     const productos = await prisma.producto.findMany({
       where: { estado: 1 },
+      include: { tipo_producto: true },
       orderBy: { id_producto: "desc" },
     });
     return productos.map(formatProducto);
@@ -20,6 +21,7 @@ export const productoRepository = {
   findById: async (id: number) => {
     const p = await prisma.producto.findUnique({
       where: { id_producto: id },
+      include: { tipo_producto: true },
     });
     if (!p) return null;
     return formatProducto(p);

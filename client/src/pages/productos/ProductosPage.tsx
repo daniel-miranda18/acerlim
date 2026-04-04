@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+
 import {
   useReactTable,
   getCoreRowModel,
@@ -30,18 +30,18 @@ import {
   cilArrowTop,
   cilArrowBottom,
   cilCloudDownload,
-  cilLayers,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import toast from "react-hot-toast";
 import { useProductos } from "../../hooks/useProductos";
-import type { Producto } from "../../types/producto.types";
+import type { Producto, TipoProducto } from "../../types/producto.types";
 import ProductoForm from "./ProductoForm";
 import ConfirmModal from "../../components/shared/ConfirmModal";
 import { exportToExcel } from "../../utils/exportExcel";
+import { tipoProductoService } from "../../services/tipoProducto.service";
+import { useEffect } from "react";
 
 export default function ProductosPage() {
-  const navigate = useNavigate();
   const { productos, loading, crear, actualizar, eliminar } = useProductos();
   
   const [globalFilter, setGlobalFilter] = useState("");
@@ -51,6 +51,11 @@ export default function ProductosPage() {
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const [tipos, setTipos] = useState<TipoProducto[]>([]);
+
+  useEffect(() => {
+    tipoProductoService.obtenerTodos().then(setTipos).catch(console.error);
+  }, []);
 
   const handleCrear = () => {
     setSelectedProducto(null);
@@ -116,9 +121,8 @@ export default function ProductosPage() {
   const handleExportar = () => {
     const data = table.getFilteredRowModel().rows.map((row) => ({
       ID: row.original.id_producto,
-      Nombre: row.original.nombre,
+      Tipo: row.original.tipo_producto?.nombre ?? "",
       Descripción: row.original.descripcion ?? "",
-      Color: row.original.color,
       "Largo (m)": row.original.medida_largo,
       "Ancho (m)": row.original.medida_ancho,
     }));
@@ -128,34 +132,34 @@ export default function ProductosPage() {
 
   const columns = useMemo<ColumnDef<Producto>[]>(
     () => [
-      { header: "#", accessorKey: "id_producto", size: 60 },
-      { header: "Nombre", accessorKey: "nombre" },
+      { 
+        header: "Tipo", 
+        accessorKey: "tipo_producto.nombre",
+        cell: ({ row }) => (
+          <CBadge color="primary" shape="rounded-pill">
+            {row.original.tipo_producto?.nombre ?? "—"}
+          </CBadge>
+        ),
+      },
       { 
         header: "Descripción", 
         accessorKey: "descripcion",
-        cell: ({ getValue }) => getValue() ?? <span className="text-secondary">—</span>,
+        cell: ({ row }) => <span className="text-secondary small">{row.original.descripcion}</span>
       },
       { 
-        header: "Color", 
-        accessorKey: "color",
-        cell: ({ getValue }) => <CBadge color="info">{getValue() as string}</CBadge>,
+        header: "Medidas (m)", 
+        accessorKey: "medida_largo",
+        cell: ({ row }) => (
+          <span className="fw-medium">
+            {Number(row.original.medida_largo).toFixed(2)} x {Number(row.original.medida_ancho).toFixed(2)}
+          </span>
+        )
       },
-      { header: "Largo (m)", accessorKey: "medida_largo" },
-      { header: "Ancho (m)", accessorKey: "medida_ancho" },
       {
         header: "Acciones",
         id: "acciones",
         cell: ({ row }) => (
           <div className="d-flex gap-2">
-            <CButton
-              color="info"
-              variant="outline"
-              size="sm"
-              title="Modelar 2D"
-              onClick={() => navigate(`/modeling?id_producto=${row.original.id_producto}`)}
-            >
-              <CIcon icon={cilLayers} />
-            </CButton>
             <CButton
               color="primary"
               variant="outline"
@@ -395,6 +399,7 @@ export default function ProductosPage() {
         onClose={() => setFormVisible(false)}
         onSubmit={handleSubmit}
         producto={selectedProducto}
+        tipos={tipos}
         loading={formLoading}
         errors={formErrors}
       />
@@ -402,7 +407,7 @@ export default function ProductosPage() {
       <ConfirmModal
         visible={confirmVisible}
         title="Eliminar Tipo"
-        message={`¿Estás seguro que deseas eliminar el tipo "${selectedProducto?.nombre}"?`}
+        message={`¿Estás seguro que deseas eliminar este producto de tipo "${selectedProducto?.tipo_producto?.nombre}"?`}
         onConfirm={handleConfirmEliminar}
         onCancel={() => setConfirmVisible(false)}
         loading={formLoading}

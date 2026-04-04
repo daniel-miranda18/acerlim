@@ -131,11 +131,23 @@ model Proveedor {
   @@map("proveedores")
 }
 
+model TipoProducto {
+  id_tipo_producto      Int       @id @default(autoincrement())
+  nombre                String    @db.VarChar(100)
+  estado                Int       @default(1) @db.TinyInt
+  fecha_creacion        DateTime  @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  productos             Producto[]
+
+  @@map("tipos_productos")
+}
+
 model Producto {
   id_producto           Int               @id @default(autoincrement())
-  nombre                String?           @db.VarChar(100)
+  id_tipo_producto      Int?
   descripcion           String?           @db.Text
-  color                 String?           @db.VarChar(50)
   medida_largo          Decimal?          @db.Decimal(10, 2)
   medida_ancho          Decimal?          @db.Decimal(10, 2)
   estado                Int               @default(1) @db.TinyInt
@@ -143,7 +155,10 @@ model Producto {
   fecha_actualizacion   DateTime?
   usuario_creacion      Int?
   usuario_actualizacion Int?
+  
+  tipo_producto         TipoProducto?     @relation(fields: [id_tipo_producto], references: [id_tipo_producto])
   dibujos               DibujoCalamina[]
+  pedido_detalles       PedidoDetalle[]
 
   @@map("productos")
 }
@@ -164,6 +179,41 @@ model DibujoCalamina {
   usuario_creacion      Int?
   usuario_actualizacion Int?
   producto              Producto  @relation(fields: [id_producto], references: [id_producto])
+  pedidos               Pedido[]
 
   @@map("productos_dibujos")
+}
+
+model Pedido {
+  id_pedido             Int             @id @default(autoincrement())
+  nombre_cliente        String          @db.VarChar(150)
+  fecha                 DateTime        @db.Date
+  id_dibujo             Int?
+  dibujo                DibujoCalamina? @relation(fields: [id_dibujo], references: [id_dibujo])
+  subtotal              Decimal?        @db.Decimal(12, 2)
+  total                 Decimal?        @db.Decimal(12, 2)
+  observaciones         String?         @db.Text
+  estado_pedido         String          @default("pendiente") @db.VarChar(30)
+  estado                Int             @default(1) @db.TinyInt
+  fecha_creacion        DateTime        @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  detalles              PedidoDetalle[]
+
+  @@map("pedidos")
+}
+
+model PedidoDetalle {
+  id_detalle            Int       @id @default(autoincrement())
+  id_pedido             Int
+  pedido                Pedido    @relation(fields: [id_pedido], references: [id_pedido])
+  id_producto           Int
+  producto              Producto  @relation(fields: [id_producto], references: [id_producto])
+  cantidad              Int
+  precio_unitario       Decimal   @db.Decimal(10, 2)
+  subtotal              Decimal?  @db.Decimal(12, 2)
+  estado                Int       @default(1) @db.TinyInt
+
+  @@map("pedido_detalles")
 }
