@@ -14,6 +14,7 @@ import {
   cilHouse,
   cilTags,
   cilTruck,
+  cilCart,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { NavLink } from "react-router-dom";
@@ -146,6 +147,16 @@ export default function Sidebar({ visible, onVisibleChange, onToggle }: SidebarP
           >
             <CIcon icon={cilHouse} customClassName="nav-icon" />
             Cotización Techo
+          </NavLink>
+        </CNavItem>
+
+        <CNavItem>
+          <NavLink
+            to="/pedidos"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilCart} customClassName="nav-icon" />
+            Pedidos
           </NavLink>
         </CNavItem>
         

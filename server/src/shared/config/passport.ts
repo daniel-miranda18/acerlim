@@ -26,7 +26,6 @@ passport.use(
           return done(null, false, { message: "Contraseña incorrecta" });
         }
 
-        // Return user without password
         const { clave: _, ...userWithoutPassword } = usuario;
         return done(null, userWithoutPassword);
       } catch (error) {
@@ -36,7 +35,6 @@ passport.use(
   )
 );
 
-// JWT Strategy for Route Protection
 passport.use(
   new JwtStrategy(
     {

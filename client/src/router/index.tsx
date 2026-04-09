@@ -12,6 +12,7 @@ import UnauthorizedPage from "../pages/auth/UnauthorizedPage";
 import ProveedoresPage from "../pages/proveedores/ProveedoresPage";
 import LotesPage from "../pages/bobinas/LotesPage";
 import CotizacionTechoPage from "../pages/cotizacion/CotizacionTechoPage";
+import PedidosPage from "../pages/pedidos/PedidosPage";
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
           { path: "proveedores", element: <ProveedoresPage /> },
           { path: "lotes", element: <LotesPage /> },
           { path: "cotizacion", element: <CotizacionTechoPage /> },
+          { path: "pedidos", element: <PedidosPage /> },
         ],
       },
     ],

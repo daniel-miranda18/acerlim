@@ -10,7 +10,6 @@ interface Props {
   calculo: CalculoResult | null;
   onTechoLargoChange: (v: number) => void;
   onTechoAnchoChange: (v: number) => void;
-  onTraslapeCmChange: (v: number) => void;
   colaActiva: boolean;
   colaBase: number;
   colaAltura: number;
@@ -29,7 +28,6 @@ const PasoDimensiones: React.FC<Props> = ({
   calculo,
   onTechoLargoChange,
   onTechoAnchoChange,
-  onTraslapeCmChange,
   colaActiva,
   colaBase,
   colaAltura,
@@ -51,7 +49,6 @@ const PasoDimensiones: React.FC<Props> = ({
         )}
       </p>
 
-      {/* ═══ Sección A: Techo Principal ═══ */}
       <div className="slider-group">
         <label>
           Largo del techo
@@ -66,6 +63,10 @@ const PasoDimensiones: React.FC<Props> = ({
           onChange={(e) => onTechoLargoChange(parseFloat(e.target.value))}
           id="slider-techo-largo"
         />
+        <div className="d-flex justify-content-between mt-1" style={{ fontSize: ".7rem", color: "var(--cui-secondary-color)" }}>
+          <span>1 m</span>
+          <span>25 m</span>
+        </div>
       </div>
 
       <div className="slider-group">
@@ -82,25 +83,33 @@ const PasoDimensiones: React.FC<Props> = ({
           onChange={(e) => onTechoAnchoChange(parseFloat(e.target.value))}
           id="slider-techo-ancho"
         />
+        <div className="d-flex justify-content-between mt-1" style={{ fontSize: ".7rem", color: "var(--cui-secondary-color)" }}>
+          <span>1 m</span>
+          <span>15 m</span>
+        </div>
       </div>
 
       <div className="slider-group">
         <label>
           Traslape longitudinal
-          <span className="slider-value">{traslapeCm} cm</span>
+          <span className="slider-value-locked">
+            10 cm
+          </span>
         </label>
         <input
           type="range"
-          min={5}
-          max={50}
+          min={10}
+          max={10}
           step={1}
-          value={traslapeCm}
-          onChange={(e) => onTraslapeCmChange(parseInt(e.target.value))}
+          value={10}
+          onChange={() => {}}
           id="slider-traslape"
+          disabled
+          style={{ opacity: 1, cursor: "not-allowed" }}
         />
         <div className="d-flex justify-content-between mt-1" style={{ fontSize: ".7rem", color: "var(--cui-secondary-color)" }}>
-          <span>5 cm</span>
-          <span>50 cm</span>
+          <span>Valor fijo</span>
+          <span style={{ fontStyle: "italic" }}>No modificable</span>
         </div>
       </div>
 
@@ -121,7 +130,6 @@ const PasoDimensiones: React.FC<Props> = ({
         </div>
       )}
 
-      {/* ═══ Sección B: Cola de Pato (Opcional) ═══ */}
       <div className="mt-4">
         <button
           type="button"
@@ -141,7 +149,6 @@ const PasoDimensiones: React.FC<Props> = ({
               Las colas de pato son extensiones triangulares que se agregan a los costados del techo.
             </p>
 
-            {/* Contador de colas */}
             <div className="mb-3">
               <label className="d-block mb-2" style={{ fontSize: ".78rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".5px" }}>
                 Cantidad de colas
@@ -167,7 +174,6 @@ const PasoDimensiones: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Slider: Base */}
             <div className="slider-group">
               <label>
                 Base de la cola
@@ -182,9 +188,12 @@ const PasoDimensiones: React.FC<Props> = ({
                 onChange={(e) => onColaBaseChange(parseFloat(e.target.value))}
                 id="slider-cola-base"
               />
+              <div className="d-flex justify-content-between mt-1" style={{ fontSize: ".7rem", color: "var(--cui-secondary-color)" }}>
+                <span>0.5 m</span>
+                <span>6 m</span>
+              </div>
             </div>
 
-            {/* Slider: Altura */}
             <div className="slider-group">
               <label>
                 Altura de la cola
@@ -199,45 +208,53 @@ const PasoDimensiones: React.FC<Props> = ({
                 onChange={(e) => onColaAlturaChange(parseFloat(e.target.value))}
                 id="slider-cola-altura"
               />
+              <div className="d-flex justify-content-between mt-1" style={{ fontSize: ".7rem", color: "var(--cui-secondary-color)" }}>
+                <span>0.5 m</span>
+                <span>4 m</span>
+              </div>
             </div>
 
-            {/* Tarjetas resumen cola */}
             {calculo && (
               <div className="cola-info-cards" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                 <div className="cola-info-card">
-                  <div className="cola-info-value">{calculo.areaPorCola.toFixed(2)} m²</div>
-                  <div className="cola-info-label">Área por cola</div>
+                  <div className="cola-info-value">{calculo.nFranjas}</div>
+                  <div className="cola-info-label">N° de franjas</div>
                 </div>
                 <div className="cola-info-card">
                   <div className="cola-info-value">{calculo.calPorCola} pzas</div>
-                  <div className="cola-info-label">Cortes por cola</div>
+                  <div className="cola-info-label">Calaminas por cola</div>
                 </div>
                 <div className="cola-info-card highlight">
                   <div className="cola-info-value">{calculo.totalColas}</div>
-                  <div className="cola-info-label">Total cortes ({colaCantidad} cola{colaCantidad > 1 ? 's' : ''})</div>
+                  <div className="cola-info-label">Total calaminas ({colaCantidad} cola{colaCantidad > 1 ? 's' : ''})</div>
                 </div>
               </div>
             )}
 
-            {/* Tabla de cortes por franja */}
-            {calculo && calculo.colaPato.strips.length > 0 && (
+            {calculo && calculo.colaPato.franjas.length > 0 && (
               <div className="mt-3">
                 <label className="d-block mb-2" style={{ fontSize: ".78rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".5px" }}>
-                  Detalle de cortes por cola
+                  Detalle de franjas por cola
                 </label>
-                <div className="cola-strips-table">
-                  <div className="cola-strip-header">
-                    <span>Fila</span>
-                    <span>Ancho de corte</span>
-                    <span>Alto</span>
-                  </div>
-                  {calculo.colaPato.strips.map((strip, idx) => (
-                    <div className="cola-strip-row" key={idx}>
-                      <span className="cola-strip-num">{idx + 1}</span>
-                      <span className="cola-strip-val">{strip.anchoCorte.toFixed(2)} m</span>
-                      <span className="cola-strip-val">{strip.alto.toFixed(2)} m</span>
-                    </div>
-                  ))}
+                <div className="table-responsive border rounded">
+                  <table className="table table-sm table-striped table-hover mb-0" style={{ fontSize: '.82rem' }}>
+                    <thead style={{ fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '.5px' }}>
+                      <tr className="table-light text-secondary">
+                        <th className="fw-bold px-3 py-2">Franja</th>
+                        <th className="fw-bold px-3 py-2">Altura</th>
+                        <th className="fw-bold px-3 py-2">Calaminas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {calculo.colaPato.franjas.map((f, idx) => (
+                        <tr key={idx}>
+                          <td className="px-3 py-2" style={{ fontWeight: 800, color: '#d97706' }}>{f.franja}</td>
+                          <td className="px-3 py-2 fw-semibold text-body">{f.altura.toFixed(2)} m</td>
+                          <td className="px-3 py-2 fw-semibold text-body">{f.calaminas} pza{f.calaminas !== 1 ? 's' : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
@@ -245,7 +262,6 @@ const PasoDimensiones: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* ═══ Resumen Total ═══ */}
       {calculo && (
         <div className="mt-4 p-3 rounded" style={{ background: "var(--cui-secondary-bg)", border: "1px solid var(--cui-border-color)" }}>
           <div className="d-flex justify-content-between mb-2" style={{ fontSize: ".82rem" }}>
@@ -276,7 +292,6 @@ const PasoDimensiones: React.FC<Props> = ({
 
           <hr className="my-2" />
 
-          {/* Resumen final */}
           {colaActiva ? (
             <div className="total-resumen-bar">
               <div className="total-resumen-item">
@@ -291,7 +306,7 @@ const PasoDimensiones: React.FC<Props> = ({
               <span className="total-resumen-op">=</span>
               <div className="total-resumen-item total">
                 <span className="total-resumen-num">{calculo.totalGeneral}</span>
-                <span className="total-resumen-label">total</span>
+                <span className="total-resumen-label">total calaminas</span>
               </div>
             </div>
           ) : (

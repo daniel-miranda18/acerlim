@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
-import { Stage, Layer, Rect, Text, Line, Group, Shape } from "react-konva";
+import { Stage, Layer, Rect, Text, Line, Group } from "react-konva";
 import { toPng } from "html-to-image";
 import { CButton, CSpinner } from "@coreui/react";
 import type { Producto } from "../../types/producto.types";
-import type { CalculoResult, ColaStrip } from "../../hooks/useCalculo";
+import type { CalculoResult, Franja } from "../../hooks/useCalculo";
 import { useTheme } from "../../context/ThemeContext";
 
 type ViewMode = "superior" | "isometrica";
@@ -22,6 +22,7 @@ interface Props {
 }
 
 const PADDING = 60;
+const GAP_COLA_TECHO = 20; // px gap between triangle and techo
 
 const PasoPlano2D: React.FC<Props> = ({
   producto, calculo, techoLargo, techoAncho, onImagenGenerada,
@@ -71,7 +72,7 @@ const PasoPlano2D: React.FC<Props> = ({
     });
   }, []);
 
-  const handleZoomIn = () => setStageScale((s) => s * 1.2);
+  const handleZoomIn  = () => setStageScale((s) => s * 1.2);
   const handleZoomOut = () => setStageScale((s) => s / 1.2);
   const handleResetZoom = () => { setStageScale(1); setStagePos({ x: 0, y: 0 }); };
 
@@ -100,6 +101,7 @@ const PasoPlano2D: React.FC<Props> = ({
   const { filas, cols, largoEfectivo, anchoEfectivo } = calculo;
   const calLargo = Number(producto.medida_largo);
   const calAncho = Number(producto.medida_ancho);
+  const franjas  = calculo.colaPato.franjas;
 
   return (
     <div className="animate-in">
@@ -110,12 +112,12 @@ const PasoPlano2D: React.FC<Props> = ({
 
       <div className="canvas-wrapper">
         <div className="canvas-toolbar">
-          <button className={`btn-view ${viewMode === "superior" ? "active" : ""}`} onClick={() => setViewMode("superior")}>Vista Superior</button>
+          <button className={`btn-view ${viewMode === "superior"   ? "active" : ""}`} onClick={() => setViewMode("superior")}>Vista Superior</button>
           <button className={`btn-view ${viewMode === "isometrica" ? "active" : ""}`} onClick={() => setViewMode("isometrica")}>Vista Isométrica</button>
 
           <div className="ms-2 border-start ps-2 d-flex align-items-center gap-1" style={{ borderColor: 'var(--cui-border-color)' }}>
             <button className={`btn-view ${orientation === "horizontal" ? "active" : ""}`} onClick={() => setOrientation("horizontal")}>Horizontal</button>
-            <button className={`btn-view ${orientation === "vertical" ? "active" : ""}`} onClick={() => setOrientation("vertical")}>Vertical</button>
+            <button className={`btn-view ${orientation === "vertical"   ? "active" : ""}`} onClick={() => setOrientation("vertical")}>Vertical</button>
           </div>
 
           <div className="ms-2 border-start ps-2 d-flex align-items-center">
@@ -138,13 +140,13 @@ const PasoPlano2D: React.FC<Props> = ({
 
         <div ref={containerRef} id="konva-container" className="canvas-grid-bg" style={{ height: '520px' }}>
           {viewMode === "superior" ? (
-            <VistaSuperiore
+            <VistaSuperior
               filas={filas} cols={cols} largoEfectivo={largoEfectivo} anchoEfectivo={anchoEfectivo}
               calLargo={calLargo} calAncho={calAncho} techoLargo={techoLargo} techoAncho={techoAncho}
               showNumeros={showNumeros} theme={theme} stageScale={stageScale} stagePos={stagePos}
               onPosChange={setStagePos} onWheel={handleWheel} width={dimensions.width} height={dimensions.height}
               orientation={orientation} colaActiva={colaActiva} colaBase={colaBase} colaAltura={colaAltura}
-              colaCantidad={colaCantidad} colaStrips={calculo.colaPato.strips}
+              colaCantidad={colaCantidad} franjas={franjas}
             />
           ) : (
             <VistaIsometrica
@@ -153,7 +155,7 @@ const PasoPlano2D: React.FC<Props> = ({
               showNumeros={showNumeros} theme={theme} stageScale={stageScale} stagePos={stagePos}
               onPosChange={setStagePos} onWheel={handleWheel} width={dimensions.width} height={dimensions.height}
               orientation={orientation} colaActiva={colaActiva} colaBase={colaBase} colaAltura={colaAltura}
-              colaCantidad={colaCantidad} colaStrips={calculo.colaPato.strips}
+              colaCantidad={colaCantidad} franjas={franjas}
             />
           )}
         </div>
@@ -166,7 +168,7 @@ const PasoPlano2D: React.FC<Props> = ({
           {colaActiva && (
             <div className="legend-item">
               <div className="legend-swatch" style={{ background: "rgba(217,119,6,.5)" }} />
-              Cortes cola de pato
+              Cola de pato (franjas)
             </div>
           )}
           <div className="legend-item">
@@ -192,142 +194,183 @@ interface ViewProps {
   width: number; height: number;
   orientation: OrientationMode;
   colaActiva: boolean; colaBase: number; colaAltura: number; colaCantidad: number;
-  colaStrips: ColaStrip[];
+  franjas: Franja[];
 }
 
-/* ────────── TRIANGLE HELPERS ────────── */
-function getSidesForCount(count: number): ("left" | "right" | "top" | "bottom")[] {
+/* ────────── HELPERS ────────── */
+type Side = "left" | "right" | "top" | "bottom";
+
+function getSidesForCount(count: number): Side[] {
   switch (count) {
-    case 1: return ["left"];
-    case 2: return ["left", "right"];
-    case 3: return ["left", "right", "top"];
-    case 4: return ["left", "right", "top", "bottom"];
+    case 1:  return ["left"];
+    case 2:  return ["left", "right"];
+    case 3:  return ["left", "right", "top"];
+    case 4:  return ["left", "right", "top", "bottom"];
     default: return ["left"];
   }
 }
 
-/** Returns 3 vertices [x1,y1, x2,y2, x3,y3] where (x1,y1)-(x2,y2) is the base and (x3,y3) is apex */
-function getTriangleVertices(
-  side: "left" | "right" | "top" | "bottom",
-  ox: number, oy: number, bw: number, bh: number,
-  colaAlturaPx: number
-): number[] {
-  switch (side) {
-    case "left":
-      return [ox, oy, ox, oy + bh, ox - colaAlturaPx, oy + bh / 2];
-    case "right":
-      return [ox + bw, oy, ox + bw, oy + bh, ox + bw + colaAlturaPx, oy + bh / 2];
-    case "top":
-      return [ox, oy, ox + bw, oy, ox + bw / 2, oy - colaAlturaPx];
-    case "bottom":
-      return [ox, oy + bh, ox + bw, oy + bh, ox + bw / 2, oy + bh + colaAlturaPx];
-  }
-}
-
-/** Compute strip polygons within a triangle. Each strip is a quad (trapezoid) from base toward apex. */
-function computeTriangleStrips(
-  triPoints: number[], // [x1,y1, x2,y2, x3,y3]
-  strips: ColaStrip[],
-  numStrips: number
-): { polygon: number[]; anchoCorte: number; fila: number }[] {
-  const [x1, y1, x2, y2, x3, y3] = triPoints;
-  const result: { polygon: number[]; anchoCorte: number; fila: number }[] = [];
-
-  for (let i = 0; i < numStrips && i < strips.length; i++) {
-    const t1 = i / numStrips;
-    const t2 = Math.min((i + 1) / numStrips, 1);
-
-    // Interpolate along edge P0→P2 (left edge of triangle)
-    const tlx = x1 + t1 * (x3 - x1);
-    const tly = y1 + t1 * (y3 - y1);
-    const blx = x1 + t2 * (x3 - x1);
-    const bly = y1 + t2 * (y3 - y1);
-
-    // Interpolate along edge P1→P2 (right edge of triangle)
-    const trx = x2 + t1 * (x3 - x2);
-    const try_ = y2 + t1 * (y3 - y2);
-    const brx = x2 + t2 * (x3 - x2);
-    const bry = y2 + t2 * (y3 - y2);
-
-    result.push({
-      polygon: [tlx, tly, trx, try_, brx, bry, blx, bly],
-      anchoCorte: strips[i].anchoCorte,
-      fila: strips[i].fila,
-    });
-  }
-
-  return result;
-}
-
 /* ────────── VISTA SUPERIOR ────────── */
-const VistaSuperiore: React.FC<ViewProps> = ({
+const VistaSuperior: React.FC<ViewProps> = ({
   filas, cols, largoEfectivo, anchoEfectivo, calLargo, calAncho, techoLargo, techoAncho,
   showNumeros, theme, stageScale, stagePos, onPosChange, onWheel, width, height, orientation,
-  colaActiva, colaBase: _colaBase, colaAltura, colaCantidad, colaStrips
+  colaActiva, colaBase, colaAltura, colaCantidad: _colaCantidad, franjas
 }) => {
   const isHoriz = orientation === "horizontal";
-  const drawWidth = isHoriz ? techoLargo : techoAncho;
+  const drawWidth  = isHoriz ? techoLargo : techoAncho;
   const drawHeight = isHoriz ? techoAncho : techoLargo;
 
   const totalAncho = cols > 0 ? (cols - 1) * anchoEfectivo + calAncho : 0;
   const totalLargo = filas > 0 ? (filas - 1) * largoEfectivo + calLargo : 0;
-  const boundingWidth = isHoriz ? totalLargo : totalAncho;
+  const boundingWidth  = isHoriz ? totalLargo  : totalAncho;
   const boundingHeight = isHoriz ? totalAncho : totalLargo;
 
-  // Extra space for colas
-  const hasLeft = colaActiva && colaCantidad >= 1;
-  const hasRight = colaActiva && colaCantidad >= 2;
-  const hasTop = colaActiva && colaCantidad >= 3;
-  const hasBottom = colaActiva && colaCantidad >= 4;
-  const colaExtraW = (hasLeft ? colaAltura : 0) + (hasRight ? colaAltura : 0);
-  const colaExtraH = (hasTop ? colaAltura : 0) + (hasBottom ? colaAltura : 0);
-  const fitWidth = Math.max(boundingWidth, drawWidth) + colaExtraW;
-  const fitHeight = Math.max(boundingHeight, drawHeight) + colaExtraH;
+  const nFranjas = franjas.length;
+  // Siempre se muestra solo UNA cola (todas son idénticas)
+  const sides: Side[] = colaActiva && nFranjas > 0 ? ["left"] : [];
+
+  // How many sides use horizontal space (left/right) vs vertical (top/bottom)
+  const hasLeft   = sides.includes("left");
+  const hasRight  = sides.includes("right");
+  const hasTop    = sides.includes("top");
+  const hasBottom = sides.includes("bottom");
+
+  // Extra canvas space needed for the triangles
+  // For left/right: triangle base = colaBase, height = colaAltura (horizontal protrusion)
+  // For top/bottom: triangle base = colaBase, height = colaAltura (vertical protrusion)
+  const extraLeft   = hasLeft   ? colaBase   + GAP_COLA_TECHO / 50 : 0;
+  const extraRight  = hasRight  ? colaBase   + GAP_COLA_TECHO / 50 : 0;
+  const extraTop    = hasTop    ? colaBase   + GAP_COLA_TECHO / 50 : 0;
+  const extraBottom = hasBottom ? colaBase   + GAP_COLA_TECHO / 50 : 0;
+
+  const fitWidth  = Math.max(boundingWidth,  drawWidth)  + extraLeft + extraRight;
+  const fitHeight = Math.max(boundingHeight, drawHeight) + extraTop  + extraBottom;
 
   const ppm = useMemo(() => Math.min(
-    (width - PADDING * 2) / fitWidth,
-    (height - PADDING * 2) / fitHeight
+    (width  - PADDING * 2) / Math.max(fitWidth,  0.1),
+    (height - PADDING * 2) / Math.max(fitHeight, 0.1)
   ), [fitWidth, fitHeight, width, height]);
 
-  const offsetX = useMemo(() => {
-    const leftPad = hasLeft ? colaAltura * ppm : 0;
-    return (width - fitWidth * ppm) / 2 + leftPad;
-  }, [fitWidth, ppm, width, hasLeft, colaAltura]);
-  const offsetY = useMemo(() => {
-    const topPad = hasTop ? colaAltura * ppm : 0;
-    return (height - fitHeight * ppm) / 2 + topPad;
-  }, [fitHeight, ppm, height, hasTop, colaAltura]);
+  // Origin of the techo: shifted right/down to leave room for left/top colas
+  const ox = useMemo(() => (width  - fitWidth  * ppm) / 2 + extraLeft  * ppm, [fitWidth,  ppm, width,  extraLeft]);
+  const oy = useMemo(() => (height - fitHeight * ppm) / 2 + extraTop   * ppm, [fitHeight, ppm, height, extraTop]);
 
+  const bw = boundingWidth  * ppm;
+  const bh = boundingHeight * ppm;
+
+  /* Calaminas del techo */
   const calaminas = useMemo(() => {
     const items: { r: number; c: number; x: number; y: number; w: number; h: number }[] = [];
     for (let r = 0; r < filas; r++) {
       for (let c = 0; c < cols; c++) {
-        const x_logical = c * anchoEfectivo;
-        const y_logical = r * largoEfectivo;
-        const x = offsetX + (isHoriz ? y_logical : x_logical) * ppm;
-        const y = offsetY + (isHoriz ? x_logical : y_logical) * ppm;
+        const x_l = c * anchoEfectivo;
+        const y_l = r * largoEfectivo;
+        const x = ox + (isHoriz ? y_l : x_l) * ppm;
+        const y = oy + (isHoriz ? x_l : y_l) * ppm;
         const w = (isHoriz ? calLargo : calAncho) * ppm;
         const h = (isHoriz ? calAncho : calLargo) * ppm;
         items.push({ r, c, x, y, w: Math.max(w, 0), h: Math.max(h, 0) });
       }
     }
     return items;
-  }, [filas, cols, anchoEfectivo, largoEfectivo, calAncho, calLargo, ppm, offsetX, offsetY, isHoriz]);
+  }, [filas, cols, anchoEfectivo, largoEfectivo, calAncho, calLargo, ppm, ox, oy, isHoriz]);
 
-  // Compute cola triangle strips
-  const allColaStrips = useMemo(() => {
-    if (!colaActiva || colaStrips.length === 0) return [];
-    const sides = getSidesForCount(colaCantidad);
-    const bw = boundingWidth * ppm;
-    const bh = boundingHeight * ppm;
-    const numStrips = colaStrips.length;
+  /* Cola de pato — triángulo recto con franjas verticales (side = left) */
+  const colaGroups = useMemo(() => {
+    if (!colaActiva || nFranjas === 0) return [];
+    const franjaW_px = colaBase * ppm / nFranjas; // width of each vertical franja in px
 
     return sides.map(side => {
-      const triPts = getTriangleVertices(side, offsetX, offsetY, bw, bh, colaAltura * ppm);
-      const stripShapes = computeTriangleStrips(triPts, colaStrips, numStrips);
-      return { side, triPts, stripShapes };
+      // Compute origin and dimensions of the triangle bounding box per side
+      let triX: number, triY: number, triW: number, triH: number;
+      // clip polygon vertices (A, B, C)
+      let Ax: number, Ay: number, Bx: number, By: number, Cx: number, Cy: number;
+
+      if (side === "left") {
+        // Triangle to the left of techo
+        triW = colaBase  * ppm;
+        triH = colaAltura * ppm;
+        triX = ox - triW - GAP_COLA_TECHO;
+        triY = oy;
+        // Right-angle at top-left; hypotenuse from B(inf-izq) to C(sup-der)
+        Ax = triX;      Ay = triY;           // sup-izq (right angle)
+        Bx = triX;      By = triY + triH;    // inf-izq
+        Cx = triX + triW; Cy = triY;         // sup-der
+      } else if (side === "right") {
+        triW = colaBase  * ppm;
+        triH = colaAltura * ppm;
+        triX = ox + bw + GAP_COLA_TECHO;
+        triY = oy;
+        Ax = triX + triW; Ay = triY;
+        Bx = triX + triW; By = triY + triH;
+        Cx = triX;        Cy = triY;
+      } else if (side === "top") {
+        triW = colaAltura * ppm;  // protrudes upward; base = bw, height = colaAltura
+        triH = colaBase   * ppm;
+        triX = ox;
+        triY = oy - triH - GAP_COLA_TECHO;
+        Ax = triX;      Ay = triY + triH;
+        Bx = triX + bw; By = triY + triH;
+        Cx = triX + bw / 2; Cy = triY;
+      } else {
+        // bottom
+        triW = colaAltura * ppm;
+        triH = colaBase   * ppm;
+        triX = ox;
+        triY = oy + bh + GAP_COLA_TECHO;
+        Ax = triX;      Ay = triY;
+        Bx = triX + bw; By = triY;
+        Cx = triX + bw / 2; Cy = triY + triH;
+      }
+
+      // Build franja rects (vertical strips for left/right; horizontal for top/bottom)
+      const rects = franjas.map((f, idx) => {
+        let rx: number, ry: number, rw: number, rh: number, labelX: number, labelY: number;
+
+        if (side === "left") {
+          rw = franjaW_px;
+          rh = triH;   // full height — clipped by triangle
+          rx = triX + idx * franjaW_px;
+          ry = triY;
+          // Label: center of visible portion (use franja height as guide)
+          const visH = f.altura * ppm;
+          labelX = rx + rw / 2;
+          labelY = triY + (triH - visH) / 2 + visH / 2;
+        } else if (side === "right") {
+          rw = franjaW_px;
+          rh = triH;
+          // Right triangle: widest at right, narrows to left
+          // So franja 0 (idx=0) is at triX (narrowest), last is at right (widest)
+          rx = triX + idx * franjaW_px;
+          ry = triY;
+          const visH = (franjas[nFranjas - 1 - idx]?.altura ?? 0) * ppm;
+          labelX = rx + rw / 2;
+          labelY = triY + (triH - visH) / 2 + visH / 2;
+        } else if (side === "top") {
+          rw = bw / nFranjas;
+          rh = franjaW_px;
+          rx = triX + idx * rw;
+          ry = triY;
+          const visW = f.altura * ppm;
+          labelX = rx + rw / 2;
+          labelY = triY + (triH - visW) / 2 + visW / 2;
+        } else {
+          rw = bw / nFranjas;
+          rh = franjaW_px;
+          rx = triX + idx * rw;
+          ry = triY + idx * franjaW_px;
+          labelX = rx + rw / 2;
+          labelY = ry + rh / 2;
+        }
+
+        return { rx, ry, rw, rh, labelX, labelY, f, idx };
+      });
+
+      return { side, triX, triY, triW, triH, Ax, Ay, Bx, By, Cx, Cy, rects };
     });
-  }, [colaActiva, colaCantidad, boundingWidth, boundingHeight, colaAltura, ppm, offsetX, offsetY, colaStrips]);
+  }, [colaActiva, nFranjas, sides, colaBase, colaAltura, ppm, franjas, ox, oy, bw, bh]);
+
+  const labelColor = theme === "dark" ? "#fde68a" : "#92400e";
 
   return (
     <Stage
@@ -339,7 +382,7 @@ const VistaSuperiore: React.FC<ViewProps> = ({
       onWheel={onWheel}
     >
       <Layer>
-        {/* Calaminas del techo */}
+        {/* ── Calaminas del techo ── */}
         {calaminas.map(({ r, c, x, y, w, h }, idx) => (
           <Group key={idx}>
             <Rect x={x} y={y} width={w} height={h} fill="#5DCAA5" opacity={0.65} stroke="#1D9E75" strokeWidth={1} />
@@ -348,62 +391,123 @@ const VistaSuperiore: React.FC<ViewProps> = ({
                 fontSize={Math.max(10, Math.min(16, w * 0.25))} fontStyle="bold"
                 fill={theme === "dark" ? "#f8fafc" : "#0f172a"} align="center" verticalAlign="middle" />
             )}
-          </Group>
-        ))}
-
-        {/* Cola de pato — franjas con cortes */}
-        {allColaStrips.map(({ side, triPts, stripShapes }, sIdx) => (
-          <Group key={`cola-${side}-${sIdx}`}>
-            {/* Franjas individuales */}
-            {stripShapes.map(({ polygon, anchoCorte, fila: _fila }, stripIdx) => (
-              <Group key={`strip-${stripIdx}`}>
-                <Shape
-                  sceneFunc={(ctx, shape) => {
-                    ctx.beginPath();
-                    ctx.moveTo(polygon[0], polygon[1]);
-                    for (let i = 2; i < polygon.length; i += 2) {
-                      ctx.lineTo(polygon[i], polygon[i + 1]);
-                    }
-                    ctx.closePath();
-                    ctx.fillStrokeShape(shape);
-                  }}
-                  fill={stripIdx % 2 === 0 ? "rgba(186,117,23,0.55)" : "rgba(154,95,18,0.55)"}
-                  stroke="rgba(239,159,39,0.7)"
-                  strokeWidth={0.8}
-                />
-                {/* Etiqueta con ancho del corte */}
-                {showNumeros && (
+            {/* Dimensiones de la calamina — solo en la primera (idx=0) */}
+            {idx === 0 && (() => {
+              const dimColor = theme === "dark" ? "#94a3b8" : "#475569";
+              const calW_label = isHoriz ? calLargo : calAncho;   // dimension along X axis
+              const calH_label = isHoriz ? calAncho : calLargo;   // dimension along Y axis
+              const tickLen = 4;
+              return (
+                <Group>
+                  {/* ── Cota horizontal (ancho del tile) ── */}
+                  {/* Línea superior con flechas */}
+                  <Line points={[x, y - 14, x + w, y - 14]} stroke={dimColor} strokeWidth={1} dash={[3, 2]} />
+                  <Line points={[x, y - 10, x, y - 18]} stroke={dimColor} strokeWidth={1} />
+                  <Line points={[x + w, y - 10, x + w, y - 18]} stroke={dimColor} strokeWidth={1} />
                   <Text
-                    x={(polygon[0] + polygon[2] + polygon[4] + polygon[6]) / 4 - 18}
-                    y={(polygon[1] + polygon[3] + polygon[5] + polygon[7]) / 4 - 6}
-                    text={`${anchoCorte.toFixed(2)}m`}
-                    fontSize={9}
-                    fontStyle="bold"
-                    fill={theme === "dark" ? "#fbbf24" : "#78350f"}
+                    x={x} y={y - 25} width={w}
+                    text={`${calW_label.toFixed(2)} m`}
+                    fontSize={9} fontStyle="bold" align="center"
+                    fill={dimColor}
                   />
-                )}
-              </Group>
-            ))}
-            {/* Borde del triángulo completo */}
-            <Line
-              points={[triPts[0], triPts[1], triPts[2], triPts[3], triPts[4], triPts[5]]}
-              closed stroke="rgba(239,159,39,0.9)" strokeWidth={1.5}
-            />
+                  {/* ── Cota vertical (alto del tile) ── */}
+                  <Line points={[x + w + 14, y, x + w + 14, y + h]} stroke={dimColor} strokeWidth={1} dash={[3, 2]} />
+                  <Line points={[x + w + 10, y, x + w + 18, y]} stroke={dimColor} strokeWidth={1} />
+                  <Line points={[x + w + 10, y + h, x + w + 18, y + h]} stroke={dimColor} strokeWidth={1} />
+                  <Text
+                    x={x + w + tickLen + 14} y={y}
+                    width={h} height={20}
+                    text={`${calH_label.toFixed(2)} m`}
+                    fontSize={9} fontStyle="bold" align="center"
+                    fill={dimColor} rotation={90}
+                  />
+                </Group>
+              );
+            })()}
           </Group>
         ))}
 
-        {/* Borde del techo */}
-        <Rect x={offsetX} y={offsetY} width={boundingWidth * ppm} height={boundingHeight * ppm}
+        {/* ── Colas de pato — franjas recortadas en triángulo ── */}
+        {colaGroups.map(({ side, triX, triY, triW, triH, Ax, Ay, Bx, By, Cx, Cy, rects }) => (
+          <Group key={`cola-${side}`}>
+            {/* Franjas recortadas por el clip del triángulo */}
+            <Group
+              clipFunc={(ctx) => {
+                ctx.beginPath();
+                ctx.moveTo(Ax, Ay);
+                ctx.lineTo(Bx, By);
+                ctx.lineTo(Cx, Cy);
+                ctx.closePath();
+              }}
+            >
+              {rects.map(({ rx, ry, rw, rh, idx }) => (
+                <Rect
+                  key={`fr-${idx}`}
+                  x={rx} y={ry} width={rw} height={rh}
+                  fill={idx % 2 === 0 ? "rgba(186,117,23,0.75)" : "rgba(154,95,18,0.75)"}
+                />
+              ))}
+            </Group>
+
+            {/* Labels de altura por franja (si hay espacio) */}
+            {showNumeros && rects.map(({ rx, ry, rw, rh, f, idx }) => {
+              if (rw < 20) return null;
+              const labelX = rx + rw / 2;
+              const labelY = (side === "left" || side === "right")
+                ? (Ay + (f.altura * ppm) / 2)   // dentro del área visible
+                : (ry + rh / 2);
+              return (
+                <Text
+                  key={`lbl-${idx}`}
+                  x={labelX - 16} y={labelY - 6}
+                  text={`${f.altura.toFixed(2)}m`}
+                  fontSize={9} fontStyle="bold"
+                  fill={labelColor}
+                />
+              );
+            })}
+
+            {/* Borde del triángulo */}
+            <Line
+              points={[Ax, Ay, Bx, By, Cx, Cy]}
+              closed stroke="rgba(239,159,39,0.95)" strokeWidth={1.5}
+            />
+
+            {/* Cota BASE del triángulo */}
+            {(side === "left" || side === "right") && (
+              <Text
+                x={triX} y={triY + triH + 6}
+                width={triW} text={`${colaBase.toFixed(1)} m`}
+                fontSize={10} fontStyle="bold"
+                fill={labelColor} align="center"
+              />
+            )}
+
+            {/* Cota ALTURA MÁX (rotada, al exterior del triángulo) */}
+            {side === "left" && (
+              <Text
+                x={triX - 18} y={triY + triH}
+                text={`${colaAltura.toFixed(1)} m`}
+                fontSize={10} fontStyle="bold"
+                fill={labelColor} rotation={-90}
+                width={triH} align="center"
+              />
+            )}
+          </Group>
+        ))}
+
+        {/* ── Borde del techo ── */}
+        <Rect x={ox} y={oy} width={bw} height={bh}
           stroke="#E24B4A" strokeWidth={1.5} dash={[5, 3]} />
 
-        {/* Cotas */}
-        <Text x={offsetX} y={offsetY - 22} width={boundingWidth * ppm}
+        {/* ── Cotas techo ── */}
+        <Text x={ox} y={oy - 22} width={bw}
           text={`${drawWidth.toFixed(1)} m`} fontSize={12} fontStyle="bold"
           fill={theme === "dark" ? "#94a3b8" : "#64748b"} align="center" />
-        <Text x={offsetX - 38} y={offsetY + boundingHeight * ppm}
+        <Text x={ox - 38} y={oy + bh}
           text={`${drawHeight.toFixed(1)} m`} fontSize={12} fontStyle="bold"
           fill={theme === "dark" ? "#94a3b8" : "#64748b"} rotation={-90}
-          width={boundingHeight * ppm} align="center" />
+          width={bh} align="center" />
       </Layer>
     </Stage>
   );
@@ -413,21 +517,21 @@ const VistaSuperiore: React.FC<ViewProps> = ({
 const VistaIsometrica: React.FC<ViewProps> = ({
   filas, cols, largoEfectivo, anchoEfectivo, calLargo, calAncho, techoLargo, techoAncho,
   showNumeros, theme, stageScale, stagePos, onPosChange, onWheel, width, height, orientation,
-  colaActiva, colaBase: _colaBase2, colaAltura, colaCantidad, colaStrips
+  colaActiva, colaBase, colaAltura: _colaAltura, colaCantidad, franjas
 }) => {
   const isHoriz = orientation === "horizontal";
 
   const totalAncho = cols > 0 ? (cols - 1) * anchoEfectivo + calAncho : 0;
   const totalLargo = filas > 0 ? (filas - 1) * largoEfectivo + calLargo : 0;
-  const boundingWidth = isHoriz ? totalLargo : totalAncho;
+  const boundingWidth  = isHoriz ? totalLargo  : totalAncho;
   const boundingHeight = isHoriz ? totalAncho : totalLargo;
 
   const scaleX = width * 0.026;
   const scaleY = width * 0.013;
-  const ox = width / 2;
-  const totalW = Math.max(boundingWidth, isHoriz ? techoLargo : techoAncho);
+  const ox     = width / 2;
+  const totalW = Math.max(boundingWidth,  isHoriz ? techoLargo : techoAncho);
   const totalH = Math.max(boundingHeight, isHoriz ? techoAncho : techoLargo);
-  const oy = height / 2 + (totalW + totalH) * scaleY / 2;
+  const oy     = height / 2 + (totalW + totalH) * scaleY / 2;
 
   const isoX = (mx: number, my: number) => ox + (mx - my) * scaleX;
   const isoY = (mx: number, my: number) => oy - (mx + my) * scaleY;
@@ -436,88 +540,83 @@ const VistaIsometrica: React.FC<ViewProps> = ({
     const items: { r: number; c: number; points: number[] }[] = [];
     for (let r = 0; r < filas; r++) {
       for (let c = 0; c < cols; c++) {
-        const x_logical = c * anchoEfectivo;
-        const y_logical = r * largoEfectivo;
-        const x0 = isHoriz ? y_logical : x_logical;
-        const y0 = isHoriz ? x_logical : y_logical;
-        const w = isHoriz ? calLargo : calAncho;
-        const h = isHoriz ? calAncho : calLargo;
-        const points = [
-          isoX(x0, y0), isoY(x0, y0),
-          isoX(x0 + w, y0), isoY(x0 + w, y0),
+        const x_l = c * anchoEfectivo;
+        const y_l = r * largoEfectivo;
+        const x0  = isHoriz ? y_l : x_l;
+        const y0  = isHoriz ? x_l : y_l;
+        const w   = isHoriz ? calLargo : calAncho;
+        const h   = isHoriz ? calAncho : calLargo;
+        const pts = [
+          isoX(x0, y0),         isoY(x0, y0),
+          isoX(x0 + w, y0),     isoY(x0 + w, y0),
           isoX(x0 + w, y0 + h), isoY(x0 + w, y0 + h),
-          isoX(x0, y0 + h), isoY(x0, y0 + h),
+          isoX(x0, y0 + h),     isoY(x0, y0 + h),
         ];
-        items.push({ r, c, points });
+        items.push({ r, c, points: pts });
       }
     }
     return items;
   }, [filas, cols, anchoEfectivo, largoEfectivo, calAncho, calLargo, oy, isHoriz]);
 
-  // Isometric cola triangles with strip lines
+  /* Isometric cola: draw franjas as parallelograms projected into iso space */
   const isoColaData = useMemo(() => {
-    if (!colaActiva || colaStrips.length === 0) return [];
+    if (!colaActiva || franjas.length === 0) return [];
+    const nFranjas = franjas.length;
     const sides = getSidesForCount(colaCantidad);
     const bw = boundingWidth;
     const bh = boundingHeight;
-    const numStrips = colaStrips.length;
 
     return sides.map(side => {
       let p0x: number, p0y: number, p1x: number, p1y: number, apexX: number, apexY: number;
       switch (side) {
         case "left":
-          p0x = 0; p0y = 0; p1x = 0; p1y = bh; apexX = -colaAltura; apexY = bh / 2; break;
+          p0x = 0; p0y = 0;  p1x = 0;  p1y = bh; apexX = -colaBase; apexY = 0;   break;
         case "right":
-          p0x = bw; p0y = 0; p1x = bw; p1y = bh; apexX = bw + colaAltura; apexY = bh / 2; break;
+          p0x = bw; p0y = 0; p1x = bw; p1y = bh; apexX = bw + colaBase; apexY = 0; break;
         case "top":
-          p0x = 0; p0y = 0; p1x = bw; p1y = 0; apexX = bw / 2; apexY = -colaAltura; break;
+          p0x = 0; p0y = 0;  p1x = bw; p1y = 0;  apexX = bw / 2; apexY = -colaBase; break;
         case "bottom":
         default:
-          p0x = 0; p0y = bh; p1x = bw; p1y = bh; apexX = bw / 2; apexY = bh + colaAltura; break;
+          p0x = 0; p0y = bh; p1x = bw; p1y = bh; apexX = bw / 2; apexY = bh + colaBase; break;
       }
 
-      const triOutline = [
+      const outline = [
         isoX(p0x, p0y), isoY(p0x, p0y),
         isoX(p1x, p1y), isoY(p1x, p1y),
         isoX(apexX, apexY), isoY(apexX, apexY),
       ];
 
-      // Strip divider lines within the triangle
-      const stripLines: { points: number[]; anchoCorte: number }[] = [];
-      for (let i = 0; i < numStrips; i++) {
-        const t1 = i / numStrips;
-        const t2 = Math.min((i + 1) / numStrips, 1);
+      // Isometric franja strips
+      const strips = franjas.map((f, idx) => {
+        const t1 = idx / nFranjas;
+        const t2 = (idx + 1) / nFranjas;
 
-        // Lerp base edges to apex
-        const lx1 = p0x + t1 * (apexX - p0x);
-        const ly1 = p0y + t1 * (apexY - p0y);
-        const rx1 = p1x + t1 * (apexX - p1x);
-        const ry1 = p1y + t1 * (apexY - p1y);
-        const lx2 = p0x + t2 * (apexX - p0x);
-        const ly2 = p0y + t2 * (apexY - p0y);
-        const rx2 = p1x + t2 * (apexX - p1x);
-        const ry2 = p1y + t2 * (apexY - p1y);
+        const lx1 = p0x + t1 * (apexX - p0x); const ly1 = p0y + t1 * (apexY - p0y);
+        const rx1 = p1x + t1 * (apexX - p1x); const ry1 = p1y + t1 * (apexY - p1y);
+        const lx2 = p0x + t2 * (apexX - p0x); const ly2 = p0y + t2 * (apexY - p0y);
+        const rx2 = p1x + t2 * (apexX - p1x); const ry2 = p1y + t2 * (apexY - p1y);
 
-        stripLines.push({
+        return {
           points: [
             isoX(lx1, ly1), isoY(lx1, ly1),
             isoX(rx1, ry1), isoY(rx1, ry1),
             isoX(rx2, ry2), isoY(rx2, ry2),
             isoX(lx2, ly2), isoY(lx2, ly2),
           ],
-          anchoCorte: colaStrips[i]?.anchoCorte ?? 0,
-        });
-      }
+          fill: idx % 2 === 0 ? "rgba(186,117,23,0.5)" : "rgba(154,95,18,0.5)",
+          altura: f.altura,
+        };
+      });
 
-      return { triOutline, stripLines };
+      return { outline, strips };
     });
-  }, [colaActiva, colaCantidad, boundingWidth, boundingHeight, colaAltura, colaStrips, oy]);
+  }, [colaActiva, franjas, colaCantidad, boundingWidth, boundingHeight, colaBase, oy]);
 
   const border = [
-    isoX(0, 0), isoY(0, 0),
-    isoX(boundingWidth, 0), isoY(boundingWidth, 0),
+    isoX(0, 0),                  isoY(0, 0),
+    isoX(boundingWidth, 0),      isoY(boundingWidth, 0),
     isoX(boundingWidth, boundingHeight), isoY(boundingWidth, boundingHeight),
-    isoX(0, boundingHeight), isoY(0, boundingHeight),
+    isoX(0, boundingHeight),     isoY(0, boundingHeight),
   ];
 
   return (
@@ -542,14 +641,13 @@ const VistaIsometrica: React.FC<ViewProps> = ({
         ))}
 
         {/* Iso colas con franjas */}
-        {isoColaData.map(({ triOutline, stripLines }, sIdx) => (
+        {isoColaData.map(({ outline, strips }, sIdx) => (
           <Group key={`iso-cola-${sIdx}`}>
-            {stripLines.map(({ points, anchoCorte: _ac }, i) => (
+            {strips.map(({ points, fill }, i) => (
               <Line key={`iso-strip-${i}`} points={points} closed
-                fill={i % 2 === 0 ? "rgba(186,117,23,0.5)" : "rgba(154,95,18,0.5)"}
-                stroke="rgba(239,159,39,0.6)" strokeWidth={0.6} />
+                fill={fill} stroke="rgba(239,159,39,0.6)" strokeWidth={0.6} />
             ))}
-            <Line points={triOutline} closed stroke="rgba(239,159,39,0.9)" strokeWidth={1.5} />
+            <Line points={outline} closed stroke="rgba(239,159,39,0.9)" strokeWidth={1.5} />
           </Group>
         ))}
 

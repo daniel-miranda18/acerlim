@@ -1,22 +1,23 @@
 import { useMemo } from "react";
 import type { Producto } from "../types/producto.types";
 
-export interface ColaStrip {
-  fila: number;
-  anchoCorte: number;  // ancho del corte en esa franja (metros)
-  alto: number;        // alto de la franja (metros)
+/* ── Interfaces ────────────────────────────────────────────── */
+
+export interface Franja {
+  franja: number;
+  altura: number;     // altura real de esta franja en metros
+  calaminas: number;  // piezas necesarias para esta franja
 }
 
 export interface ColaPato {
   activa: boolean;
   cantidad: number;
   base: number;
-  altura: number;
-  strips: ColaStrip[];
-  totalPiezasPorCola: number;
-  total_colas: number;
-  area_por_cola: number;
+  altura: number;      // colaAltura (altura máxima)
+  n_franjas: number;
+  franjas: Franja[];
   cal_por_cola: number;
+  total_colas: number;
 }
 
 export interface CalculoResult {
@@ -29,7 +30,7 @@ export interface CalculoResult {
   totalGeneral: number;
   total: number;
   traslapeCm: number;
-  areaPorCola: number;
+  nFranjas: number;
   calPorCola: number;
   colaPato: ColaPato;
   datosJson: {
@@ -48,6 +49,8 @@ export interface CalculoResult {
     total_general: number;
   };
 }
+
+/* ── Pure calculation ───────────────────────────────────────── */
 
 function calcular(
   techoLargo: number,
@@ -71,45 +74,48 @@ function calcular(
   if (largoEfectivo <= 0 || anchoEfectivo <= 0) return null;
 
   const filas = Math.ceil(techoLargo / largoEfectivo);
-  const cols = Math.ceil(techoAncho / anchoEfectivo);
+  const cols  = Math.ceil(techoAncho / anchoEfectivo);
   const totalTecho = filas * cols;
 
-  // Cola de pato — cálculo por franjas
-  let areaPorCola = 0;
+  /* ── Cola de pato — cálculo franja por franja ── */
+  let nFranjas   = 0;
   let calPorCola = 0;
   let totalColas = 0;
-  const strips: ColaStrip[] = [];
+  const franjas: Franja[] = [];
 
   if (colaActiva) {
-    areaPorCola = +((colaBase * colaAltura) / 2).toFixed(2);
+    // 1. Número de franjas (columnas a lo largo de la base)
+    nFranjas = Math.ceil(colaBase / anchoEfectivo);
 
-    // Dividir la altura del triángulo en franjas de largoEfectivo
-    const numStrips = Math.ceil(colaAltura / largoEfectivo);
-    for (let i = 0; i < numStrips; i++) {
-      const d = i * largoEfectivo;
-      const alto = +(Math.min(largoEfectivo, colaAltura - d)).toFixed(2);
-      const anchoCorte = +(colaBase * (1 - d / colaAltura)).toFixed(2);
-      if (anchoCorte > 0) {
-        strips.push({ fila: i, anchoCorte, alto });
-      }
+    // 2. Altura proporcional por franja y calaminas necesarias
+    for (let i = 1; i <= nFranjas; i++) {
+      const h_i = colaAltura * (nFranjas - i + 1) / nFranjas;
+      const calPorFranja = Math.ceil(h_i / largoEfectivo);
+      franjas.push({
+        franja: i,
+        altura: parseFloat(h_i.toFixed(2)),
+        calaminas: calPorFranja,
+      });
     }
 
-    calPorCola = strips.length; // 1 pieza por franja
+    // 3. Total por 1 cola
+    calPorCola = franjas.reduce((sum, f) => sum + f.calaminas, 0);
+
+    // 4. Total todas las colas
     totalColas = calPorCola * colaCantidad;
   }
 
   const totalGeneral = colaActiva ? totalTecho + totalColas : totalTecho;
 
   const colaPato: ColaPato = {
-    activa: colaActiva,
-    cantidad: colaCantidad,
-    base: colaBase,
-    altura: colaAltura,
-    strips,
-    totalPiezasPorCola: calPorCola,
-    total_colas: totalColas,
-    area_por_cola: areaPorCola,
+    activa:      colaActiva,
+    cantidad:    colaCantidad,
+    base:        colaBase,
+    altura:      colaAltura,
+    n_franjas:   nFranjas,
+    franjas,
     cal_por_cola: calPorCola,
+    total_colas:  totalColas,
   };
 
   return {
@@ -122,26 +128,28 @@ function calcular(
     totalGeneral,
     total: totalGeneral,
     traslapeCm,
-    areaPorCola,
+    nFranjas,
     calPorCola,
     colaPato,
     datosJson: {
-      id_producto: producto.id_producto,
-      techo_largo: +techoLargo.toFixed(2),
-      techo_ancho: +techoAncho.toFixed(2),
-      cal_largo: calLargo,
-      cal_ancho: calAncho,
-      traslape_cm: traslapeCm,
+      id_producto:    producto.id_producto,
+      techo_largo:    +techoLargo.toFixed(2),
+      techo_ancho:    +techoAncho.toFixed(2),
+      cal_largo:      calLargo,
+      cal_ancho:      calAncho,
+      traslape_cm:    traslapeCm,
       largo_efectivo: largoEfectivo,
       ancho_efectivo: anchoEfectivo,
       filas,
-      columnas: cols,
-      total_techo: totalTecho,
-      cola_pato: colaPato,
-      total_general: totalGeneral,
+      columnas:       cols,
+      total_techo:    totalTecho,
+      cola_pato:      colaPato,
+      total_general:  totalGeneral,
     },
   };
 }
+
+/* ── Hook ───────────────────────────────────────────────────── */
 
 export function useCalculo(
   techoLargo: number,

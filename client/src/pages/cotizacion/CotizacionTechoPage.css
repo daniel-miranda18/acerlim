@@ -208,6 +208,36 @@
 .slider-group input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.15);
 }
+.slider-group input[type="range"]:disabled::-webkit-slider-thumb {
+  background: var(--cui-secondary-color);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.slider-group input[type="range"]:disabled {
+  background: var(--cui-border-color);
+  opacity: 0.55;
+}
+
+/* Locked slider value badge */
+.slider-value-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--cui-secondary-color);
+  background: var(--cui-secondary-bg);
+  border: 1px solid var(--cui-border-color);
+  border-radius: 20px;
+  padding: .1rem .65rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.lock-icon {
+  font-size: .75rem;
+  line-height: 1;
+}
 
 /* ===== Metric Cards ===== */
 .metric-cards {
@@ -411,7 +441,7 @@
   opacity: 0;
 }
 .cola-panel.open {
-  max-height: 600px;
+  max-height: 1500px; /* Suficiente para que no corte la tabla si es muy larga */
   opacity: 1;
 }
 .cola-panel-inner {
@@ -544,43 +574,4 @@
   .cola-info-cards { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ===== Cola de Pato — Strips Table ===== */
-.cola-strips-table {
-  border: 1px solid var(--cui-border-color);
-  border-radius: var(--cui-border-radius);
-  overflow: hidden;
-}
-.cola-strip-header {
-  display: grid;
-  grid-template-columns: 60px 1fr 1fr;
-  padding: .5rem .75rem;
-  background: var(--cui-secondary-bg);
-  font-size: .7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  color: var(--cui-secondary-color);
-  border-bottom: 1px solid var(--cui-border-color);
-}
-.cola-strip-row {
-  display: grid;
-  grid-template-columns: 60px 1fr 1fr;
-  padding: .45rem .75rem;
-  font-size: .82rem;
-  border-bottom: 1px solid var(--cui-border-color);
-  transition: background .15s ease;
-}
-.cola-strip-row:last-child {
-  border-bottom: none;
-}
-.cola-strip-row:hover {
-  background: rgba(217,119,6,.06);
-}
-.cola-strip-num {
-  font-weight: 800;
-  color: #d97706;
-}
-.cola-strip-val {
-  font-weight: 600;
-  color: var(--cui-body-color);
-}
+

@@ -9,7 +9,7 @@ export const pedidoDetalleSchema = z.object({
 
 export const crearPedidoSchema = z.object({
   nombre_cliente: z.string().min(1).max(150),
-  fecha: z.string(), // ISO date string
+  fecha: z.string(),
   id_dibujo: z.number().optional(),
   subtotal: z.number().optional(),
   total: z.number().optional(),

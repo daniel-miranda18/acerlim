@@ -20,7 +20,7 @@ const CotizacionTechoPage: React.FC = () => {
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const [techoLargo, setTechoLargo] = useState(8);
   const [techoAncho, setTechoAncho] = useState(5);
-  const [traslapeCm, setTraslapeCm] = useState(15);
+  const traslapeCm = 10;
   const [imagenBase64, setImagenBase64] = useState("");
 
   // Cola de pato
@@ -95,7 +95,6 @@ const CotizacionTechoPage: React.FC = () => {
               calculo={calculo}
               onTechoLargoChange={setTechoLargo}
               onTechoAnchoChange={setTechoAncho}
-              onTraslapeCmChange={setTraslapeCm}
               colaActiva={colaActiva}
               colaBase={colaBase}
               colaAltura={colaAltura}
