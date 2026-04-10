@@ -30,8 +30,12 @@ export const dibujoService = {
     api.get<ApiResponse<DibujoCalamina[]>>(`/dibujos-calaminas/producto/${idProducto}`),
   obtener: (id: number) =>
     api.get<ApiResponse<DibujoCalamina>>(`/dibujos-calaminas/${id}`),
-  crear: (data: CrearDibujoDTO) =>
-    api.post<ApiResponse<DibujoCalamina>>("/dibujos-calaminas", data),
+  crear: (data: FormData | CrearDibujoDTO) => {
+    const isFormData = data instanceof FormData;
+    return api.post<ApiResponse<DibujoCalamina>>("/dibujos-calaminas", data, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : { "Content-Type": "application/json" },
+    });
+  },
   actualizar: (id: number, data: Partial<CrearDibujoDTO>) =>
     api.put<ApiResponse<DibujoCalamina>>(`/dibujos-calaminas/${id}`, data),
   eliminar: (id: number) =>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CFormInput, CButton, CSpinner } from "@coreui/react";
 import toast from "react-hot-toast";
 import { dibujoService } from "../../services/dibujo.service";
@@ -13,12 +14,11 @@ interface Props {
 }
 
 const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
+  const navigate = useNavigate();
   const [nombreCliente, setNombreCliente] = useState("");
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [precioUnitario, setPrecioUnitario] = useState<number>(0);
-  const [savingDibujo, setSavingDibujo] = useState(false);
-  const [savingPedido, setSavingPedido] = useState(false);
-  const [dibujoGuardado, setDibujoGuardado] = useState<number | null>(null);
+  const [savingTotal, setSavingTotal] = useState(false);
   const [pedidoCreado, setPedidoCreado] = useState(false);
 
   if (!producto || !calculo) {
@@ -32,27 +32,7 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
 
   const totalAmount = calculo.totalGeneral * precioUnitario;
 
-  const handleGuardarDibujo = async () => {
-    setSavingDibujo(true);
-    try {
-      const res = await dibujoService.crear({
-        id_producto: producto.id_producto,
-        largo: calculo.datosJson.techo_largo,
-        ancho: calculo.datosJson.techo_ancho,
-        area_plana: calculo.datosJson.techo_largo * calculo.datosJson.techo_ancho,
-        datos_json: JSON.stringify(calculo.datosJson),
-        imagen_generada: imagenBase64 || undefined,
-      });
-      setDibujoGuardado(res.data.data.id_dibujo);
-      toast.success("Dibujo guardado exitosamente");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Error al guardar el dibujo");
-    } finally {
-      setSavingDibujo(false);
-    }
-  };
-
-  const handleCrearPedido = async () => {
+  const handleGuardarTotal = async () => {
     if (!nombreCliente.trim()) {
       toast.error("Ingresa el nombre del cliente");
       return;
@@ -62,12 +42,30 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
       return;
     }
 
-    setSavingPedido(true);
+    setSavingTotal(true);
     try {
+      // 1. Guardar dibujo primero
+      const formData = new FormData();
+      formData.append("id_producto", producto.id_producto.toString());
+      formData.append("largo", calculo.datosJson.techo_largo.toString());
+      formData.append("ancho", calculo.datosJson.techo_ancho.toString());
+      formData.append("area_plana", (calculo.datosJson.techo_largo * calculo.datosJson.techo_ancho).toString());
+      formData.append("datos_json", JSON.stringify(calculo.datosJson));
+
+      if (imagenBase64) {
+        const response = await fetch(imagenBase64);
+        const blob = await response.blob();
+        formData.append("imagen", blob, "plano.png");
+      }
+
+      const resDibujo = await dibujoService.crear(formData as any);
+      const idDibujo = resDibujo.data.data.id_dibujo;
+
+      // 2. Crear pedido asociado
       await pedidoService.crear({
         nombre_cliente: nombreCliente.trim(),
         fecha,
-        id_dibujo: dibujoGuardado ?? undefined,
+        id_dibujo: idDibujo,
         subtotal: totalAmount,
         total: totalAmount,
         detalles: [
@@ -79,11 +77,12 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
         ],
       });
       setPedidoCreado(true);
-      toast.success("Pedido creado exitosamente");
+      toast.success("Cotización completada y pedido creado exitosamente");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Error al crear el pedido");
+      toast.error(err.response?.data?.message || "Error al completar la cotización");
+      console.error(err);
     } finally {
-      setSavingPedido(false);
+      setSavingTotal(false);
     }
   };
 
@@ -177,38 +176,36 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
           </div>
         )}
 
-        {/* Actions */}
         <div className="d-flex gap-3 mt-4">
           <CButton
-            color="success"
-            className="flex-fill d-flex align-items-center justify-content-center gap-2 py-2"
-            onClick={handleGuardarDibujo}
-            disabled={savingDibujo || !!dibujoGuardado}
-          >
-            {savingDibujo ? <CSpinner size="sm" /> : null}
-            {dibujoGuardado ? "✓ Dibujo Guardado" : "Guardar Dibujo"}
-          </CButton>
-
-          <CButton
             color="primary"
-            className="flex-fill d-flex align-items-center justify-content-center gap-2 py-2"
-            onClick={handleCrearPedido}
-            disabled={savingPedido || pedidoCreado || !nombreCliente.trim() || precioUnitario <= 0}
+            className="flex-fill d-flex align-items-center justify-content-center gap-2 py-2 fs-5 fw-bold"
+            onClick={handleGuardarTotal}
+            disabled={savingTotal || pedidoCreado || !nombreCliente.trim() || precioUnitario <= 0}
+            style={{ minHeight: "50px" }}
           >
-            {savingPedido ? <CSpinner size="sm" /> : null}
-            {pedidoCreado ? "✓ Pedido Creado" : "Crear Pedido"}
+            {savingTotal ? <CSpinner size="sm" /> : null}
+            {pedidoCreado ? "✓ Cotización Guardada" : "Guardar"}
           </CButton>
         </div>
 
         {pedidoCreado && (
-          <div className="mt-3 p-3 rounded text-center" style={{
+          <div className="mt-3 p-3 rounded text-center d-flex flex-column align-items-center" style={{
             background: "rgba(34,197,94,.1)",
             border: "1px solid rgba(34,197,94,.3)",
             color: "#16a34a",
-            fontSize: ".85rem",
+            fontSize: ".9rem",
             fontWeight: 600
           }}>
-            ¡Cotización completada exitosamente! El dibujo y pedido han sido registrados.
+            <span className="mb-3">¡Cotización completada exitosamente! El dibujo y pedido han sido registrados.</span>
+            <CButton 
+              color="success" 
+              variant="outline" 
+              onClick={() => navigate("/pedidos")}
+              className="px-4 py-2"
+            >
+              Ver Pedidos →
+            </CButton>
           </div>
         )}
       </div>

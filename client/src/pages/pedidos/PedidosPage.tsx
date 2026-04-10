@@ -28,6 +28,7 @@ import {
   cilArrowBottom,
   cilCloudDownload,
   cilList,
+  cilLowVision,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import toast from "react-hot-toast";
@@ -35,6 +36,7 @@ import { usePedidos } from "../../hooks/usePedidos";
 import type { Pedido } from "../../types/pedido.types";
 import ConfirmModal from "../../components/shared/ConfirmModal";
 import PedidoDetalleModal from "./PedidoDetalleModal";
+import Roof3DModal from "./Roof3DModal";
 import { exportToExcel } from "../../utils/exportExcel";
 
 export default function PedidosPage() {
@@ -47,10 +49,17 @@ export default function PedidosPage() {
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [viewer3DVisible, setViewer3DVisible] = useState(false);
+  const [pedido3D, setPedido3D] = useState<Pedido | null>(null);
 
   const handleVerDetalles = (p: Pedido) => {
     setSelectedPedido(p);
     setDetalleVisible(true);
+  };
+
+  const handleVer3D = (p: Pedido) => {
+    setPedido3D(p);
+    setViewer3DVisible(true);
   };
 
   const handleEliminar = (p: Pedido) => {
@@ -133,6 +142,17 @@ export default function PedidosPage() {
             >
               <CIcon icon={cilList} />
             </CButton>
+            {row.original.dibujo && (
+              <CButton
+                color="success"
+                variant="outline"
+                size="sm"
+                onClick={() => handleVer3D(row.original)}
+                title="Ver modelo 3D"
+              >
+                <CIcon icon={cilLowVision} />
+              </CButton>
+            )}
             <CButton
               color="danger"
               variant="outline"
@@ -279,6 +299,12 @@ export default function PedidosPage() {
           )}
         </CCardBody>
       </CCard>
+
+      <Roof3DModal
+        visible={viewer3DVisible}
+        onClose={() => setViewer3DVisible(false)}
+        pedido={pedido3D}
+      />
 
       <PedidoDetalleModal
         visible={detalleVisible}

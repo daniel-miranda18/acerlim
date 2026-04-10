@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import { errorMiddleware } from "./shared/middlewares/error.middleware";
 import passport from "./shared/config/passport";
@@ -22,6 +23,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 app.use(passport.initialize());
 
 app.use("/api/auth", authRoutes);

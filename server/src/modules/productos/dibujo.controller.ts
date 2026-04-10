@@ -6,7 +6,7 @@ export const dibujoController = {
     try {
       const idProducto = parseInt(req.params.idProducto as string);
       const dibujos = await dibujoService.listarPorProducto(idProducto);
-      res.json(dibujos);
+      res.json({ success: true, data: dibujos });
     } catch (e) {
       next(e);
     }
@@ -16,7 +16,7 @@ export const dibujoController = {
     try {
       const id = parseInt(req.params.id as string);
       const dibujo = await dibujoService.obtener(id);
-      res.json(dibujo);
+      res.json({ success: true, data: dibujo });
     } catch (e) {
       next(e);
     }
@@ -24,8 +24,11 @@ export const dibujoController = {
 
   crear: async (req: Request, res: Response, next: NextFunction) => {
     try {
+      if (req.file) {
+        req.body.imagen_generada = `/uploads/dibujos/${req.file.filename}`;
+      }
       const dibujo = await dibujoService.crear(req.body);
-      res.status(201).json(dibujo);
+      res.status(201).json({ success: true, data: dibujo });
     } catch (e) {
       next(e);
     }
@@ -33,9 +36,12 @@ export const dibujoController = {
 
   actualizar: async (req: Request, res: Response, next: NextFunction) => {
     try {
+      if (req.file) {
+        req.body.imagen_generada = `/uploads/dibujos/${req.file.filename}`;
+      }
       const id = parseInt(req.params.id as string);
       const dibujo = await dibujoService.actualizar(id, req.body);
-      res.json(dibujo);
+      res.json({ success: true, data: dibujo });
     } catch (e) {
       next(e);
     }
@@ -45,7 +51,7 @@ export const dibujoController = {
     try {
       const id = parseInt(req.params.id as string);
       await dibujoService.eliminar(id);
-      res.json({ message: "Dibujo eliminado correctamente" });
+      res.json({ success: true, message: "Dibujo eliminado correctamente" });
     } catch (e) {
       next(e);
     }

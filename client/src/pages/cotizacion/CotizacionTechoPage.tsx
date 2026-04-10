@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { CCard, CCardBody, CButton } from "@coreui/react";
 import type { Producto } from "../../types/producto.types";
 import { useCalculo } from "../../hooks/useCalculo";
 import PasoSeleccionCalamina from "./PasoSeleccionCalamina";
 import PasoDimensiones from "./PasoDimensiones";
-import PasoPlano2D from "./PasoPlano2D";
+import PasoPlano2D, { type PasoPlano2DRef } from "./PasoPlano2D";
 import PasoGuardar from "./PasoGuardar";
 import "./CotizacionTechoPage.css";
 
@@ -17,6 +17,8 @@ const PASOS = [
 
 const CotizacionTechoPage: React.FC = () => {
   const [paso, setPaso] = useState(1);
+  const [capturing, setCapturing] = useState(false);
+  const planoRef = useRef<PasoPlano2DRef>(null);
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const [techoLargo, setTechoLargo] = useState(8);
   const [techoAncho, setTechoAncho] = useState(5);
@@ -41,6 +43,23 @@ const CotizacionTechoPage: React.FC = () => {
     return false;
   };
 
+  const handleNextStep3 = async () => {
+    if (!planoRef.current) {
+      setPaso(4);
+      return;
+    }
+    setCapturing(true);
+    try {
+      await planoRef.current.exportarImagen(); // This sets it to imagenBase64 via the callback
+      setPaso(4);
+    } catch (e) {
+      console.error(e);
+      setPaso(4); // proceed anyway
+    } finally {
+      setCapturing(false);
+    }
+  };
+
   return (
     <div>
       {/* Header */}
@@ -60,8 +79,15 @@ const CotizacionTechoPage: React.FC = () => {
             <div
               className={`stepper-step ${paso === p.num ? "active" : ""} ${paso > p.num ? "completed" : ""}`}
               onClick={() => {
+                if (capturing) return;
                 if (p.num < paso) setPaso(p.num);
-                if (p.num === paso + 1 && canGoNext()) setPaso(p.num);
+                if (p.num === paso + 1 && canGoNext()) {
+                  if (paso === 3) {
+                    handleNextStep3();
+                  } else {
+                    setPaso(p.num);
+                  }
+                }
               }}
             >
               <div className="step-number">
@@ -108,6 +134,7 @@ const CotizacionTechoPage: React.FC = () => {
 
           {paso === 3 && (
             <PasoPlano2D
+              ref={planoRef}
               producto={productoSeleccionado}
               calculo={calculo}
               techoLargo={techoLargo}
@@ -134,7 +161,7 @@ const CotizacionTechoPage: React.FC = () => {
               color="secondary"
               variant="outline"
               onClick={() => setPaso(paso - 1)}
-              disabled={paso === 1}
+              disabled={paso === 1 || capturing}
               className="px-4"
             >
               ← Anterior
@@ -147,11 +174,14 @@ const CotizacionTechoPage: React.FC = () => {
             {paso < PASOS.length ? (
               <CButton
                 color="primary"
-                onClick={() => setPaso(paso + 1)}
-                disabled={!canGoNext()}
+                onClick={() => {
+                  if (paso === 3) handleNextStep3();
+                  else setPaso(paso + 1);
+                }}
+                disabled={!canGoNext() || capturing}
                 className="px-4"
               >
-                Siguiente →
+                {capturing ? "Procesando..." : "Siguiente →"}
               </CButton>
             ) : (
               <div style={{ width: 120 }} />

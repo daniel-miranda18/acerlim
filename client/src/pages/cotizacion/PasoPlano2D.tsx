@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import React, { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect, forwardRef, useImperativeHandle } from "react";
 import { Stage, Layer, Rect, Text, Line, Group } from "react-konva";
 import { toPng } from "html-to-image";
-import { CButton, CSpinner } from "@coreui/react";
 import type { Producto } from "../../types/producto.types";
 import type { CalculoResult, Franja } from "../../hooks/useCalculo";
 import { useTheme } from "../../context/ThemeContext";
@@ -24,14 +23,17 @@ interface Props {
 const PADDING = 60;
 const GAP_COLA_TECHO = 20; // px gap between triangle and techo
 
-const PasoPlano2D: React.FC<Props> = ({
+export interface PasoPlano2DRef {
+  exportarImagen: () => Promise<string | undefined>;
+}
+
+const PasoPlano2D = forwardRef<PasoPlano2DRef, Props>(({
   producto, calculo, techoLargo, techoAncho, onImagenGenerada,
   colaActiva, colaBase, colaAltura, colaCantidad
-}) => {
+}, ref) => {
   const [viewMode, setViewMode] = useState<ViewMode>("superior");
   const [orientation, setOrientation] = useState<OrientationMode>("horizontal");
   const [showNumeros, setShowNumeros] = useState(true);
-  const [exporting, setExporting] = useState(false);
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 800, height: 500 });
@@ -76,18 +78,18 @@ const PasoPlano2D: React.FC<Props> = ({
   const handleZoomOut = () => setStageScale((s) => s / 1.2);
   const handleResetZoom = () => { setStageScale(1); setStagePos({ x: 0, y: 0 }); };
 
-  const handleExport = useCallback(async () => {
-    if (!containerRef.current) return;
-    setExporting(true);
-    try {
-      const dataUrl = await toPng(containerRef.current, { quality: 0.95, pixelRatio: 2 });
-      onImagenGenerada(dataUrl);
-    } catch (err) {
-      console.error("Error exporting image:", err);
-    } finally {
-      setExporting(false);
+  useImperativeHandle(ref, () => ({
+    exportarImagen: async () => {
+      if (!containerRef.current) return;
+      try {
+        const dataUrl = await toPng(containerRef.current, { quality: 0.95, pixelRatio: 2 });
+        onImagenGenerada && onImagenGenerada(dataUrl);
+        return dataUrl;
+      } catch (err) {
+        console.error("Error exporting image:", err);
+      }
     }
-  }, [onImagenGenerada]);
+  }));
 
   if (!calculo || !producto) {
     return (
@@ -129,12 +131,6 @@ const PasoPlano2D: React.FC<Props> = ({
             <button className="btn-view" style={{ padding: '.2rem .6rem' }} onClick={handleZoomOut}>-</button>
             <button className="btn-view" style={{ padding: '.2rem .6rem' }} onClick={handleResetZoom}>100%</button>
             <button className="btn-view" style={{ padding: '.2rem .6rem' }} onClick={handleZoomIn}>+</button>
-          </div>
-
-          <div className="ms-auto">
-            <CButton color="primary" size="sm" className="d-flex align-items-center gap-1" onClick={handleExport} disabled={exporting}>
-              {exporting ? <CSpinner size="sm" /> : "📷"} Exportar imagen
-            </CButton>
           </div>
         </div>
 
@@ -179,7 +175,7 @@ const PasoPlano2D: React.FC<Props> = ({
       </div>
     </div>
   );
-};
+});
 
 /* ────────── SHARED TYPES ────────── */
 interface ViewProps {
@@ -313,7 +309,6 @@ const VistaSuperior: React.FC<ViewProps> = ({
         Bx = triX + bw; By = triY + triH;
         Cx = triX + bw / 2; Cy = triY;
       } else {
-        // bottom
         triW = colaAltura * ppm;
         triH = colaBase   * ppm;
         triX = ox;
@@ -323,24 +318,20 @@ const VistaSuperior: React.FC<ViewProps> = ({
         Cx = triX + bw / 2; Cy = triY + triH;
       }
 
-      // Build franja rects (vertical strips for left/right; horizontal for top/bottom)
       const rects = franjas.map((f, idx) => {
         let rx: number, ry: number, rw: number, rh: number, labelX: number, labelY: number;
 
         if (side === "left") {
           rw = franjaW_px;
-          rh = triH;   // full height — clipped by triangle
+          rh = triH;  
           rx = triX + idx * franjaW_px;
           ry = triY;
-          // Label: center of visible portion (use franja height as guide)
           const visH = f.altura * ppm;
           labelX = rx + rw / 2;
           labelY = triY + (triH - visH) / 2 + visH / 2;
         } else if (side === "right") {
           rw = franjaW_px;
           rh = triH;
-          // Right triangle: widest at right, narrows to left
-          // So franja 0 (idx=0) is at triX (narrowest), last is at right (widest)
           rx = triX + idx * franjaW_px;
           ry = triY;
           const visH = (franjas[nFranjas - 1 - idx]?.altura ?? 0) * ppm;
