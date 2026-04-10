@@ -28,7 +28,7 @@ import {
   cilArrowBottom,
   cilCloudDownload,
   cilList,
-  cilLowVision,
+  cil3d,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import toast from "react-hot-toast";
@@ -150,7 +150,7 @@ export default function PedidosPage() {
                 onClick={() => handleVer3D(row.original)}
                 title="Ver modelo 3D"
               >
-                <CIcon icon={cilLowVision} />
+                <CIcon icon={cil3d} />
               </CButton>
             )}
             <CButton

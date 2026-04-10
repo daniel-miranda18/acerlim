@@ -102,7 +102,6 @@ const CotizacionTechoPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Step Content */}
       <CCard className="border-0 shadow-sm">
         <CCardBody className="p-4">
           {paso === 1 && (

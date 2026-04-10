@@ -6,7 +6,6 @@ import { env } from "./env";
 import { usuarioRepository } from "../../modules/usuarios/usuario.repository";
 import prisma from "../lib/prisma";
 
-// Local Strategy for Login
 passport.use(
   new LocalStrategy(
     {

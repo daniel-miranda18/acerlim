@@ -66,17 +66,10 @@ export default function Roof3DModal({ visible, onClose, pedido }: Props) {
           </span>
         </div>
 
-        {/* Controls hint */}
         <div
           className="position-absolute bottom-0 end-0 m-3"
           style={{ zIndex: 10 }}
         >
-          <span
-            className="badge px-3 py-2"
-            style={{ background: "rgba(15,23,42,0.7)", backdropFilter: "blur(6px)", color: "#64748b", fontSize: "0.68rem" }}
-          >
-            🖱 Arrastrar para rotar · Scroll para zoom · Pinch en móvil
-          </span>
         </div>
 
         <Suspense

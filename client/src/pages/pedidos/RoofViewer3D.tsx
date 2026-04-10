@@ -36,14 +36,12 @@ export default function RoofViewer3D({
     const H = mount.clientHeight || 500;
     const isDark = theme === "dark";
 
-    /* ── Colors ── */
     const bgColor    = isDark ? 0x0f172a : 0xdde6f0;
     const fogColor   = isDark ? 0x0f172a : 0xdde6f0;
     const floorColor = isDark ? 0x1e293b : 0xcad8e8;
     const gridA      = isDark ? 0x334155 : 0x90aac8;
     const gridB      = isDark ? 0x1e2d3d : 0xb8cfe0;
 
-    /* ── Renderer ── */
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H);
@@ -54,12 +52,10 @@ export default function RoofViewer3D({
     renderer.setClearColor(bgColor);
     mount.appendChild(renderer.domElement);
 
-    /* ── Scene ── */
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(bgColor);
     scene.fog = new THREE.Fog(fogColor, 40, 120);
 
-    /* ── Dimensions ── */
     const halfL = largo / 2;
     const halfA = ancho / 2;
     const wallT  = 0.22;                                   // wall thickness
@@ -67,14 +63,12 @@ export default function RoofViewer3D({
     const ridgeH = Math.max(1.0, Math.min(ancho * 0.35, 2.5)); // rise above wall
     const overhang = 0.35;                                 // roof overhang beyond wall
 
-    // Slope maths (CRITICAL: correct pivot)
     const slopeAngle = Math.atan2(ridgeH, halfA);
     const slopeLen   = Math.sqrt(ridgeH * ridgeH + halfA * halfA);
     const totalSlope = slopeLen + overhang / Math.cos(slopeAngle); // along slope surface
     const roofWidth  = largo + 2 * overhang;
     const ridgeY     = wallH + ridgeH;
 
-    /* ── Camera ── */
     const diag = Math.sqrt(largo * largo + ancho * ancho);
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 300);
     const camR = diag * 2.0;
@@ -93,7 +87,6 @@ export default function RoofViewer3D({
     };
     syncCamera();
 
-    /* ── Lights ── */
     scene.add(new THREE.AmbientLight(0xffffff, isDark ? 0.5 : 0.75));
     const sun = new THREE.DirectionalLight(isDark ? 0xfff5cc : 0xffffff, isDark ? 2.0 : 2.8);
     sun.position.set(largo * 1.5, diag * 2, ancho * 0.8);
@@ -106,7 +99,6 @@ export default function RoofViewer3D({
     fill.position.set(-largo, diag, -ancho);
     scene.add(fill);
 
-    /* ── Ground & Grid ── */
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(diag * 8, diag * 8),
       new THREE.MeshStandardMaterial({ color: floorColor, roughness: 0.92 })
@@ -116,9 +108,6 @@ export default function RoofViewer3D({
     scene.add(ground);
     scene.add(new THREE.GridHelper(diag * 6, 50, gridA, gridB));
 
-    /* ─────────────────────────────────────────
-       MATERIALS
-    ───────────────────────────────────────── */
     const wallMat = new THREE.MeshStandardMaterial({
       color: isDark ? 0xbfb09a : 0xd4c5a9,
       roughness: 0.85,
@@ -138,15 +127,8 @@ export default function RoofViewer3D({
       new THREE.MeshStandardMaterial({ color: 0xba7517, roughness: 0.5, metalness: 0.28, side: THREE.DoubleSide }),
       new THREE.MeshStandardMaterial({ color: 0x9a5f12, roughness: 0.5, metalness: 0.32, side: THREE.DoubleSide }),
     ];
-    const doorMat   = new THREE.MeshStandardMaterial({ color: 0x7c3e1a, roughness: 0.7 });
-    const frameMat  = new THREE.MeshStandardMaterial({ color: isDark ? 0xbfb09a : 0xd4c5a9, roughness: 0.8 });
-    const glassMat  = new THREE.MeshStandardMaterial({
-      color: 0x7dd3fc, roughness: 0.1, metalness: 0.7, transparent: true, opacity: 0.75,
-    });
 
-    /* ─────────────────────────────────────────
-       HELPER: add mesh to scene
-    ───────────────────────────────────────── */
+
     const addBox = (
       w: number, h: number, d: number,
       x: number, y: number, z: number,
@@ -161,41 +143,19 @@ export default function RoofViewer3D({
       return m;
     };
 
-    /* ─────────────────────────────────────────
-       WALLS (4 box walls)
-    ───────────────────────────────────────── */
-    // Front (Z+) & Back (Z-)
-    addBox(largo + wallT * 2, wallH, wallT, 0, wallH / 2,  halfA + wallT / 2, wallMat);
-    addBox(largo + wallT * 2, wallH, wallT, 0, wallH / 2, -(halfA + wallT / 2), wallMat);
-    // Left (X-) & Right (X+)
-    addBox(wallT, wallH, ancho, -(halfL + wallT / 2), wallH / 2, 0, wallMat);
-    addBox(wallT, wallH, ancho,  (halfL + wallT / 2), wallH / 2, 0, wallMat);
+    addBox(largo, wallH, wallT, 0, wallH / 2,  halfA - wallT / 2, wallMat);
+    addBox(largo, wallH, wallT, 0, wallH / 2, -(halfA - wallT / 2), wallMat);
+    addBox(wallT, wallH, ancho - wallT * 2, -(halfL - wallT / 2), wallH / 2, 0, wallMat);
+    addBox(wallT, wallH, ancho - wallT * 2,  (halfL - wallT / 2), wallH / 2, 0, wallMat);
 
-    /* ─────────────────────────────────────────
-       GABLE TRIANGLE WALLS  (pentagon per side)
-       Vertices are in WORLD space, placed at ±halfL on X.
-       Pentagon = rect base + triangle peak.
-    ───────────────────────────────────────── */
-    const makeGable = (xPos: number) => {
-      // 5 vertices (pentagon):
-      // 0: bottom-left  1: bottom-right
-      // 2: top-right    3: peak        4: top-left
+    const makeGable = (xPos: number, isLeft: boolean) => {
       const v = [
-        xPos, 0,          -halfA,        // 0
-        xPos, 0,           halfA,        // 1
-        xPos, wallH,       halfA,        // 2
-        xPos, ridgeY,      0,            // 3 peak
-        xPos, wallH,      -halfA,        // 4
+        xPos, wallH,  -halfA,
+        xPos, wallH,   halfA,
+        xPos, ridgeY,  0,
       ];
       const verts = new Float32Array(v.length); v.forEach((n, i) => (verts[i] = n));
-
-      // Triangulate the pentagon (3 triangles):
-      // front: 0→1→2,  0→2→4,  2→3→4
-      // rear (reversed):  0→2→1, 0→4→2, 2→4→3
-      const idx = [
-        0, 1, 2,  0, 2, 4,  2, 3, 4,   // front face
-        0, 2, 1,  0, 4, 2,  2, 4, 3,   // back face
-      ];
+      const idx = isLeft ? [0, 1, 2] : [0, 2, 1];
       const geo = new THREE.BufferGeometry();
       geo.setAttribute("position", new THREE.BufferAttribute(verts, 3));
       geo.setIndex(idx);
@@ -205,160 +165,136 @@ export default function RoofViewer3D({
       mesh.receiveShadow = true;
       scene.add(mesh);
     };
-    makeGable(-halfL);
-    makeGable( halfL);
 
-    /* ─────────────────────────────────────────
-       ROOF SLOPES
-       Key insight:
-         Front slope → slopeGroup.rotation.x = +slopeAngle
-           local +Z travels in world (Z+, Y-) direction = down toward front eave ✓
-         Back slope  → slopeGroup.rotation.x = Math.PI - slopeAngle
-           local +Z travels in world (Z-, Y-) direction = down toward back eave ✓
-         Both groups have their origin at the ridge.
-    ───────────────────────────────────────── */
-    const halfCols = Math.max(1, Math.round(columnas / 2));
-    const stripW   = roofWidth / halfCols;
-    const stripD   = totalSlope / filas;
+    if (!colaActiva) {
+      makeGable(-halfL, true);
+      makeGable( halfL, false);
+    }
 
-    const makeSlope = (rotX: number) => {
-      const grp = new THREE.Group();
-      grp.position.set(0, ridgeY, 0);
-      grp.rotation.x = rotX;
-      scene.add(grp);
+    if (!colaActiva) {
+      const halfCols = Math.max(1, Math.round(columnas / 2));
+      const stripW   = roofWidth / halfCols;
+      const stripD   = totalSlope / filas;
 
-      // Calamina strips (rows × cols/2)
-      for (let row = 0; row < filas; row++) {
-        for (let col = 0; col < halfCols; col++) {
-          const mat = roofMat[(row + col) % 2];
-          const strip = new THREE.Mesh(
-            new THREE.BoxGeometry(stripW - 0.04, 0.06, stripD - 0.04),
-            mat
-          );
-          strip.position.set(
-            -roofWidth / 2 + col * stripW + stripW / 2,
-            0.03,
-            row * stripD + stripD / 2
-          );
-          strip.castShadow = true;
-          strip.receiveShadow = true;
-          grp.add(strip);
+      const makeSlope = (rotX: number) => {
+        const grp = new THREE.Group();
+        grp.position.set(0, ridgeY, 0);
+        grp.rotation.x = rotX;
+        scene.add(grp);
+
+        for (let row = 0; row < filas; row++) {
+          for (let col = 0; col < halfCols; col++) {
+            const mat = roofMat[(row + col) % 2];
+            const strip = new THREE.Mesh(
+              new THREE.BoxGeometry(stripW - 0.04, 0.06, stripD - 0.04),
+              mat
+            );
+            strip.position.set(
+              -roofWidth / 2 + col * stripW + stripW / 2,
+              0.03,
+              row * stripD + stripD / 2
+            );
+            strip.castShadow = true;
+            strip.receiveShadow = true;
+            grp.add(strip);
+          }
         }
-      }
 
-      // Base plane (fills gaps between strips)
-      const base = new THREE.Mesh(
-        new THREE.PlaneGeometry(roofWidth, totalSlope),
-        roofBase
-      );
-      base.rotation.x = -Math.PI / 2;
-      base.position.set(0, 0, totalSlope / 2);
-      base.receiveShadow = true;
-      grp.add(base);
+        const base = new THREE.Mesh(new THREE.PlaneGeometry(roofWidth, totalSlope), roofBase);
+        base.rotation.x = -Math.PI / 2;
+        base.position.set(0, 0, totalSlope / 2);
+        base.receiveShadow = true;
+        grp.add(base);
 
-      // Ridge trim (at z=0 in group = world ridge)
-      const ridgeTrim = new THREE.Mesh(new THREE.BoxGeometry(roofWidth, 0.08, 0.16), ridgeMat);
-      ridgeTrim.position.set(0, 0.04, 0.05);
-      grp.add(ridgeTrim);
+        const eaveTrim = new THREE.Mesh(new THREE.BoxGeometry(roofWidth + 0.1, 0.1, 0.16), ridgeMat);
+        eaveTrim.position.set(0, 0.05, totalSlope);
+        eaveTrim.castShadow = true;
+        grp.add(eaveTrim);
 
-      // Eave trim (at z=totalSlope in group = world eave)
-      const eaveTrim = new THREE.Mesh(new THREE.BoxGeometry(roofWidth + 0.1, 0.1, 0.16), ridgeMat);
-      eaveTrim.position.set(0, 0.05, totalSlope);
-      eaveTrim.castShadow = true;
-      grp.add(eaveTrim);
+        for (const sx of [-1, 1]) {
+          const fascia = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, totalSlope), ridgeMat);
+          fascia.position.set(sx * (roofWidth / 2 + 0.04), 0.035, totalSlope / 2);
+          grp.add(fascia);
+        }
+      };
 
-      // Fascia boards on left/right ends of slope
-      for (const sx of [-1, 1]) {
-        const fascia = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, totalSlope), ridgeMat);
-        fascia.position.set(sx * (roofWidth / 2 + 0.04), 0.035, totalSlope / 2);
-        grp.add(fascia);
-      }
-    };
+      makeSlope(slopeAngle);
+      makeSlope(Math.PI - slopeAngle);
+      addBox(roofWidth, 0.16, 0.3, 0, ridgeY + 0.08, 0, ridgeMat);
+      
+    } else {
+     
+      const rX = Math.max(0, halfL - colaBase);
+      const eY = wallH - 0.2;
+      const eZ = halfA + overhang;
+      const eX = halfL + overhang;
+      const topY = ridgeY + 0.04;
 
-    makeSlope(slopeAngle);             // front slope
-    makeSlope(Math.PI - slopeAngle);   // back slope
-
-    // Ridge cap (world space, sitting on top of ridge)
-    addBox(roofWidth, 0.16, 0.3, 0, ridgeY + 0.08, 0, ridgeMat);
-
-    /* ─────────────────────────────────────────
-       COLA DE PATO
-       A triangular flap sticking out from the
-       left side (X = -halfL) of the house.
-       In plan view (top-down):
-         The right-angle corner is at (-halfL, _, -halfA) (top-left corner of techo)
-         The base runs along -Z (world): from -halfA to -halfA + colaAltura
-         The apex extends in -X: from -halfL to -halfL - colaBase
-       In 3D, the flap is roughly horizontal at wallH height
-       (it represents the flat plan, below the eave).
-    ───────────────────────────────────────── */
-    if (colaActiva) {
-      const nFranjas = 4;
-      // build in plan (XZ plane) at Y = wallH
-      for (let i = 0; i < nFranjas; i++) {
-        const t0 = i / nFranjas;
-        const t1 = (i + 1) / nFranjas;
-
-        // Each franja is a quad:
-        //   inner edge: x = -halfL, z from [-halfA + colaAltura*t0] to [-halfA + colaAltura*t1]
-        //   outer edge: x = -halfL - colaBase*(1-t), interpolated
-        const z0 = -halfA + colaAltura * t0;
-        const z1 = -halfA + colaAltura * t1;
-        const xOut0 = -(halfL + colaBase * (1 - t0));  // outer X at z0
-        const xOut1 = -(halfL + colaBase * (1 - t1));  // outer X at z1 (closer to apex)
-
-        // 4 vertices of the quad (at y=wallH)
-        // v0: inner at z0, v1: outer at z0, v2: outer at z1, v3: inner at z1
+      const createFace = (pts: number[], mat: THREE.Material) => {
         const geo = new THREE.BufferGeometry();
-        const verts = new Float32Array([
-          -halfL, wallH, z0,    // 0 inner z0
-          xOut0,  wallH, z0,    // 1 outer z0
-          xOut1,  wallH, z1,    // 2 outer z1
-          -halfL, wallH, z1,    // 3 inner z1
-        ]);
-        geo.setAttribute("position", new THREE.BufferAttribute(verts, 3));
-        geo.setIndex([0, 1, 2, 0, 2, 3,   2, 1, 0, 3, 2, 0]);  // both faces
+        geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(pts), 3));
+        const idx = [0, 1, 2, 0, 2, 3];
+        if (pts.length === 12) geo.setIndex(idx);
         geo.computeVertexNormals();
-        const mesh = new THREE.Mesh(geo, colaMats[i % 2]);
+        const mesh = new THREE.Mesh(geo, mat);
         mesh.castShadow = true;
+        mesh.receiveShadow = true;
         scene.add(mesh);
+      };
+
+      createFace([
+        -eX, eY, eZ,
+         eX, eY, eZ,
+         rX, topY, 0,
+        -rX, topY, 0
+      ], roofMat[0]);
+
+      createFace([
+         eX, eY, -eZ,
+        -eX, eY, -eZ,
+        -rX, topY, 0,
+         rX, topY, 0
+      ], roofMat[1]);
+
+      const leftGeo = new THREE.BufferGeometry();
+      leftGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([
+        -eX, eY, -eZ,
+        -eX, eY, eZ,
+        -rX, topY, 0
+      ]), 3));
+      leftGeo.computeVertexNormals();
+      const leftMesh = new THREE.Mesh(leftGeo, colaMats[0]);
+      leftMesh.castShadow = true; scene.add(leftMesh);
+
+      const rightGeo = new THREE.BufferGeometry();
+      rightGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([
+         eX, eY, eZ,
+         eX, eY, -eZ,
+         rX, topY, 0
+      ]), 3));
+      rightGeo.computeVertexNormals();
+      const rightMesh = new THREE.Mesh(rightGeo, colaMats[1]);
+      rightMesh.castShadow = true; scene.add(rightMesh);
+
+      if (rX > 0) {
+        addBox(rX * 2, 0.1, 0.2, 0, topY + 0.05, 0, ridgeMat);
       }
-
-      // Small vertical trim strip where cola meets wall
-      addBox(0.08, wallH * 0.15, colaAltura, -(halfL + 0.04), wallH - wallH * 0.075, -halfA + colaAltura / 2, ridgeMat, false);
+      
+      const drawHipTrim = (x1: number, z1: number, x2: number, z2: number) => {
+        const dx = x2 - x1, dy = eY - topY, dz = z2 - z1;
+        const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        const trim = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, len), ridgeMat);
+        trim.position.set(x1 + dx/2, topY + dy/2 + 0.06, z1 + dz/2);
+        trim.lookAt(x2, eY + 0.06, z2);
+        scene.add(trim);
+      };
+      drawHipTrim(-rX, 0, -eX, eZ);
+      drawHipTrim(-rX, 0, -eX, -eZ);
+      drawHipTrim(rX, 0, eX, eZ);
+      drawHipTrim(rX, 0, eX, -eZ);
     }
 
-    /* ─────────────────────────────────────────
-       DOOR & WINDOWS
-    ───────────────────────────────────────── */
-    const frontZ = halfA + wallT + 0.01;
-    const wY = wallH * 0.62;
 
-    const addWindow = (x: number, z: number, rotY = 0) => {
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.85, 0.08), frameMat);
-      frame.position.set(x, wY, z);
-      frame.rotation.y = rotY;
-      scene.add(frame);
-      const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.75, 0.65), glassMat);
-      glass.position.set(x, wY, z + (rotY === 0 ? 0.045 : -0.045));
-      glass.rotation.y = rotY;
-      scene.add(glass);
-    };
-
-    // Center front window
-    addWindow(0, frontZ);
-    // Side windows only if house is wide enough
-    if (largo > 5) {
-      const wx = Math.min(halfL - 1.5, largo * 0.3);
-      addWindow( wx, frontZ);
-      addWindow(-wx, frontZ);
-    }
-    // Back window
-    if (largo > 3) addWindow(0, -(halfA + wallT + 0.01), Math.PI);
-
-    // Door
-    const doorX = largo > 5 ? halfL * 0.4 : 0;
-    addBox(1.0, 2.1, 0.1, doorX, 1.05, frontZ, doorMat);
 
     /* ─────────────────────────────────────────
        ORBIT CONTROLS (manual, no deps)
@@ -415,7 +351,6 @@ export default function RoofViewer3D({
     };
     window.addEventListener("resize", onResize);
 
-    /* ── Animate ── */
     let raf: number;
     const tick = () => { raf = requestAnimationFrame(tick); renderer.render(scene, camera); };
     tick();
