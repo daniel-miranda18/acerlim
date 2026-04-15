@@ -24,12 +24,14 @@ export default function Roof3DModal({ visible, onClose, pedido }: Props) {
   let colaActiva = false;
   let colaBase = 2;
   let colaAltura = 1.5;
+  let caidas = d?.caidas ?? 2;
 
   if (d?.datos_json) {
     try {
       const conf = JSON.parse(d.datos_json);
       if (conf.filas) filas = conf.filas;
       if (conf.columnas) columnas = conf.columnas;
+      if (conf.caidas) caidas = conf.caidas;
       if (conf.cola_pato?.activa) {
         colaActiva = true;
         colaBase = conf.cola_pato.base ?? 2;
@@ -90,6 +92,7 @@ export default function Roof3DModal({ visible, onClose, pedido }: Props) {
             colaActiva={colaActiva}
             colaBase={colaBase}
             colaAltura={colaAltura}
+            caidas={caidas}
             theme={theme}
             style={{ height: "60vh" } as any}
           />

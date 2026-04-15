@@ -30,10 +30,11 @@ const CotizacionTechoPage: React.FC = () => {
   const [colaBase, setColaBase] = useState(2);
   const [colaAltura, setColaAltura] = useState(1.5);
   const [colaCantidad, setColaCantidad] = useState(1);
+  const [caidas, setCaidas] = useState(2);
 
   const calculo = useCalculo(
     techoLargo, techoAncho, productoSeleccionado, traslapeCm,
-    colaActiva, colaBase, colaAltura, colaCantidad
+    colaActiva, colaBase, colaAltura, colaCantidad, caidas
   );
 
   const canGoNext = () => {
@@ -128,6 +129,8 @@ const CotizacionTechoPage: React.FC = () => {
               onColaBaseChange={setColaBase}
               onColaAlturaChange={setColaAltura}
               onColaCantidadChange={setColaCantidad}
+              caidas={caidas}
+              onCaidasChange={setCaidas}
             />
           )}
 
@@ -143,6 +146,7 @@ const CotizacionTechoPage: React.FC = () => {
               colaBase={colaBase}
               colaAltura={colaAltura}
               colaCantidad={colaCantidad}
+              caidas={caidas}
             />
           )}
 

@@ -9,6 +9,7 @@ export const dibujoCalaminaSchema = z.object({
   configuracion_calculo: z.any().optional(),
   datos_json: z.string().optional(),
   imagen_generada: z.string().optional(),
+  caidas: z.coerce.number().min(1).max(4).optional(),
 });
 
 export type CrearDibujoDTO = z.infer<typeof dibujoCalaminaSchema>;

@@ -22,6 +22,7 @@ export interface CalaminaParams {
   color?: string;
   paso_ondulacion?: number; // distancia entre picos
   altura_ondulacion?: number; // altura del pico
+  caidas?: number; // 1, 2, 3 o 4 vertientes
   calculo?: CalculationParams;
 }
 

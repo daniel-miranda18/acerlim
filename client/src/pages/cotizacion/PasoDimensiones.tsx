@@ -18,6 +18,8 @@ interface Props {
   onColaBaseChange: (v: number) => void;
   onColaAlturaChange: (v: number) => void;
   onColaCantidadChange: (v: number) => void;
+  caidas: number;
+  onCaidasChange: (v: number) => void;
 }
 
 const PasoDimensiones: React.FC<Props> = ({
@@ -36,6 +38,8 @@ const PasoDimensiones: React.FC<Props> = ({
   onColaBaseChange,
   onColaAlturaChange,
   onColaCantidadChange,
+  caidas,
+  onCaidasChange,
 }) => {
   return (
     <div className="animate-in">
@@ -111,6 +115,32 @@ const PasoDimensiones: React.FC<Props> = ({
           <span>Valor fijo</span>
           <span style={{ fontStyle: "italic" }}>No modificable</span>
         </div>
+      </div>
+
+      <div className="mb-4">
+        <label className="d-block mb-2" style={{ fontSize: ".78rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".5px" }}>
+          Caídas de agua (Visual)
+        </label>
+        <div className="d-flex gap-2">
+          {[1, 2, 3, 4].map((num) => (
+            <button
+              key={num}
+              type="button"
+              className={`flex-fill py-2 rounded border fw-bold transition-all shadow-sm ${
+                caidas === num 
+                  ? "bg-primary text-white border-primary" 
+                  : "bg-body-secondary text-body-secondary border-secondary-subtle"
+              }`}
+              onClick={() => onCaidasChange(num)}
+              style={{ fontSize: ".85rem" }}
+            >
+              {num} {num === 1 ? "Caída" : "Caídas"}
+            </button>
+          ))}
+        </div>
+        <small className="text-secondary d-block mt-2" style={{ fontSize: ".75rem" }}>
+          Selecciona cómo se verá el techo en el plano y modelo 3D.
+        </small>
       </div>
 
       {calculo && (

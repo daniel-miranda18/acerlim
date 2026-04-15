@@ -9,6 +9,7 @@ interface RoofViewer3DProps {
   colaActiva?: boolean;
   colaBase?: number;
   colaAltura?: number;
+  caidas?: number;
   theme?: string;
   className?: string;
   style?: React.CSSProperties;
@@ -22,6 +23,7 @@ export default function RoofViewer3D({
   colaActiva = false,
   colaBase = 2,
   colaAltura = 1.5,
+  caidas = 2,
   theme = "light",
   className,
   style,
@@ -58,16 +60,11 @@ export default function RoofViewer3D({
 
     const halfL = largo / 2;
     const halfA = ancho / 2;
-    const wallT  = 0.22;                                   // wall thickness
-    const wallH  = Math.max(2.2, Math.min(ancho * 0.5, 4.0)); // rect. wall height
-    const ridgeH = Math.max(1.0, Math.min(ancho * 0.35, 2.5)); // rise above wall
-    const overhang = 0.35;                                 // roof overhang beyond wall
-
-    const slopeAngle = Math.atan2(ridgeH, halfA);
-    const slopeLen   = Math.sqrt(ridgeH * ridgeH + halfA * halfA);
-    const totalSlope = slopeLen + overhang / Math.cos(slopeAngle); // along slope surface
-    const roofWidth  = largo + 2 * overhang;
-    const ridgeY     = wallH + ridgeH;
+    const wallT  = 0.22;                                   
+    const wallH  = Math.max(2.2, Math.min(ancho * 0.5, 4.0)); 
+    const ridgeH = Math.max(1.0, Math.min(ancho * 0.35, 2.5)); 
+    const overhang = 0.35;                                 
+    const ridgeY = wallH + ridgeH;
 
     const diag = Math.sqrt(largo * largo + ancho * ancho);
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 300);
@@ -95,6 +92,7 @@ export default function RoofViewer3D({
     const sc = diag * 2.5;
     Object.assign(sun.shadow.camera, { near: 0.1, far: 200, left: -sc, right: sc, top: sc, bottom: -sc });
     scene.add(sun);
+    
     const fill = new THREE.DirectionalLight(isDark ? 0x8ba8c8 : 0x6090c0, 0.45);
     fill.position.set(-largo, diag, -ancho);
     scene.add(fill);
@@ -114,12 +112,9 @@ export default function RoofViewer3D({
       side: THREE.DoubleSide,
     });
     const roofMat = [
-      new THREE.MeshStandardMaterial({ color: 0x1dab82, roughness: 0.55, metalness: 0.28 }),
-      new THREE.MeshStandardMaterial({ color: 0x14806a, roughness: 0.55, metalness: 0.32 }),
+      new THREE.MeshStandardMaterial({ color: 0x1dab82, roughness: 0.55, metalness: 0.28, side: THREE.DoubleSide }),
+      new THREE.MeshStandardMaterial({ color: 0x14806a, roughness: 0.55, metalness: 0.32, side: THREE.DoubleSide }),
     ];
-    const roofBase = new THREE.MeshStandardMaterial({
-      color: 0x186b5a, roughness: 0.6, metalness: 0.2, side: THREE.DoubleSide,
-    });
     const ridgeMat = new THREE.MeshStandardMaterial({
       color: 0x0a3d2c, roughness: 0.4, metalness: 0.5,
     });
@@ -128,184 +123,104 @@ export default function RoofViewer3D({
       new THREE.MeshStandardMaterial({ color: 0x9a5f12, roughness: 0.5, metalness: 0.32, side: THREE.DoubleSide }),
     ];
 
-
-    const addBox = (
-      w: number, h: number, d: number,
-      x: number, y: number, z: number,
-      mat: THREE.Material,
-      cast = true
-    ) => {
+    const addBox = (w: number, h: number, d: number, x: number, y: number, z: number, mat: THREE.Material) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
       m.position.set(x, y, z);
-      m.castShadow = cast;
+      m.castShadow = true;
       m.receiveShadow = true;
       scene.add(m);
       return m;
     };
 
-    addBox(largo, wallH, wallT, 0, wallH / 2,  halfA - wallT / 2, wallMat);
-    addBox(largo, wallH, wallT, 0, wallH / 2, -(halfA - wallT / 2), wallMat);
-    addBox(wallT, wallH, ancho - wallT * 2, -(halfL - wallT / 2), wallH / 2, 0, wallMat);
-    addBox(wallT, wallH, ancho - wallT * 2,  (halfL - wallT / 2), wallH / 2, 0, wallMat);
+    // Paredes
+    addBox(largo, wallH, wallT, 0, wallH / 2, halfA - wallT/2, wallMat);
+    addBox(largo, wallH, wallT, 0, wallH / 2, -(halfA - wallT/2), wallMat);
+    addBox(wallT, wallH, ancho - wallT*2, -(halfL - wallT/2), wallH / 2, 0, wallMat);
+    addBox(wallT, wallH, ancho - wallT*2, (halfL - wallT/2), wallH / 2, 0, wallMat);
 
-    const makeGable = (xPos: number, isLeft: boolean) => {
-      const v = [
-        xPos, wallH,  -halfA,
-        xPos, wallH,   halfA,
-        xPos, ridgeY,  0,
-      ];
-      const verts = new Float32Array(v.length); v.forEach((n, i) => (verts[i] = n));
-      const idx = isLeft ? [0, 1, 2] : [0, 2, 1];
+    const createFace = (pts: number[], mat: THREE.Material) => {
       const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(verts, 3));
-      geo.setIndex(idx);
+      geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(pts), 3));
+      if (pts.length === 12) geo.setIndex([0, 1, 2, 2, 3, 0]);
+      else geo.setIndex([0, 1, 2]);
       geo.computeVertexNormals();
-      const mesh = new THREE.Mesh(geo, wallMat);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = true; mesh.receiveShadow = true;
       scene.add(mesh);
+      return mesh;
     };
 
-    if (!colaActiva) {
-      makeGable(-halfL, true);
-      makeGable( halfL, false);
-    }
+    const drawLine = (p1: THREE.Vector3, p2: THREE.Vector3) => {
+      const dir = p2.clone().sub(p1);
+      const len = dir.length();
+      const m = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, len), ridgeMat);
+      m.position.copy(p1.clone().add(dir.multiplyScalar(0.5)));
+      m.lookAt(p2);
+      scene.add(m);
+    };
 
-    if (!colaActiva) {
-      const halfCols = Math.max(1, Math.round(columnas / 2));
-      const stripW   = roofWidth / halfCols;
-      const stripD   = totalSlope / filas;
+    const eX = halfL + overhang;
+    const eZ = halfA + overhang;
+    const topY = ridgeY + 0.05;
+    const bY = wallH - 0.1;
 
-      const makeSlope = (rotX: number) => {
-        const grp = new THREE.Group();
-        grp.position.set(0, ridgeY, 0);
-        grp.rotation.x = rotX;
-        scene.add(grp);
-
-        for (let row = 0; row < filas; row++) {
-          for (let col = 0; col < halfCols; col++) {
-            const mat = roofMat[(row + col) % 2];
-            const strip = new THREE.Mesh(
-              new THREE.BoxGeometry(stripW - 0.04, 0.06, stripD - 0.04),
-              mat
-            );
-            strip.position.set(
-              -roofWidth / 2 + col * stripW + stripW / 2,
-              0.03,
-              row * stripD + stripD / 2
-            );
-            strip.castShadow = true;
-            strip.receiveShadow = true;
-            grp.add(strip);
-          }
-        }
-
-        const base = new THREE.Mesh(new THREE.PlaneGeometry(roofWidth, totalSlope), roofBase);
-        base.rotation.x = -Math.PI / 2;
-        base.position.set(0, 0, totalSlope / 2);
-        base.receiveShadow = true;
-        grp.add(base);
-
-        const eaveTrim = new THREE.Mesh(new THREE.BoxGeometry(roofWidth + 0.1, 0.1, 0.16), ridgeMat);
-        eaveTrim.position.set(0, 0.05, totalSlope);
-        eaveTrim.castShadow = true;
-        grp.add(eaveTrim);
-
-        for (const sx of [-1, 1]) {
-          const fascia = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, totalSlope), ridgeMat);
-          fascia.position.set(sx * (roofWidth / 2 + 0.04), 0.035, totalSlope / 2);
-          grp.add(fascia);
-        }
-      };
-
-      makeSlope(slopeAngle);
-      makeSlope(Math.PI - slopeAngle);
-      addBox(roofWidth, 0.16, 0.3, 0, ridgeY + 0.08, 0, ridgeMat);
-      
-    } else {
-     
-      const rX = Math.max(0, halfL - colaBase);
-      const eY = wallH - 0.2;
-      const eZ = halfA + overhang;
-      const eX = halfL + overhang;
-      const topY = ridgeY + 0.04;
-
-      const createFace = (pts: number[], mat: THREE.Material) => {
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(pts), 3));
-        const idx = [0, 1, 2, 0, 2, 3];
-        if (pts.length === 12) geo.setIndex(idx);
-        geo.computeVertexNormals();
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        scene.add(mesh);
-      };
-
-      createFace([
-        -eX, eY, eZ,
-         eX, eY, eZ,
-         rX, topY, 0,
-        -rX, topY, 0
-      ], roofMat[0]);
-
-      createFace([
-         eX, eY, -eZ,
-        -eX, eY, -eZ,
-        -rX, topY, 0,
-         rX, topY, 0
-      ], roofMat[1]);
-
-      const leftGeo = new THREE.BufferGeometry();
-      leftGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([
-        -eX, eY, -eZ,
-        -eX, eY, eZ,
-        -rX, topY, 0
-      ]), 3));
-      leftGeo.computeVertexNormals();
-      const leftMesh = new THREE.Mesh(leftGeo, colaMats[0]);
-      leftMesh.castShadow = true; scene.add(leftMesh);
-
-      const rightGeo = new THREE.BufferGeometry();
-      rightGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([
-         eX, eY, eZ,
-         eX, eY, -eZ,
-         rX, topY, 0
-      ]), 3));
-      rightGeo.computeVertexNormals();
-      const rightMesh = new THREE.Mesh(rightGeo, colaMats[1]);
-      rightMesh.castShadow = true; scene.add(rightMesh);
-
-      if (rX > 0) {
-        addBox(rX * 2, 0.1, 0.2, 0, topY + 0.05, 0, ridgeMat);
+    if (caidas === 1) {
+      // Mono-pitch
+      createFace([ -eX, bY, -eZ, eX, bY, -eZ, eX, topY, eZ, -eX, topY, eZ ], roofMat[0]);
+      // Triangular sides
+      createFace([ eX, bY, -eZ, eX, bY, eZ, eX, topY, eZ ], wallMat);
+      createFace([ -eX, bY, -eZ, -eX, topY, eZ, -eX, bY, eZ ], wallMat);
+      // Back wall gable
+      createFace([ -eX, bY, eZ, eX, bY, eZ, eX, topY, eZ, -eX, topY, eZ ], wallMat);
+    } 
+    else if (caidas === 2) {
+      if (!colaActiva) {
+        // Standard Gable
+        createFace([ -eX, bY, eZ, eX, bY, eZ, eX, topY, 0, -eX, topY, 0 ], roofMat[0]);
+        createFace([ -eX, bY, -eZ, -eX, topY, 0, eX, topY, 0, eX, bY, -eZ ], roofMat[1]);
+        // Gable triangles
+        createFace([ -halfL, wallH, -halfA, -halfL, wallH, halfA, -halfL, ridgeY, 0 ], wallMat);
+        createFace([ halfL, wallH, halfA, halfL, wallH, -halfA, halfL, ridgeY, 0 ], wallMat);
+        addBox(eX*2, 0.15, 0.25, 0, topY, 0, ridgeMat);
+      } else {
+        // Jerkinhead (Cola de pato) - Gable with small hips
+        const rX = Math.max(0, halfL - colaBase);
+        const hipY = topY - colaAltura;
+        createFace([ -eX, bY, eZ, eX, bY, eZ, rX, topY, 0, -rX, topY, 0 ], roofMat[0]);
+        createFace([ eX, bY, -eZ, -eX, bY, -eZ, -rX, topY, 0, rX, topY, 0 ], roofMat[1]);
+        // Hips
+        createFace([ -eX, bY, -eZ, -eX, bY, eZ, -rX, topY, 0 ], colaMats[0]);
+        createFace([ eX, bY, eZ, eX, bY, -eZ, rX, topY, 0 ], colaMats[1]);
+        if (rX > 0) addBox(rX*2, 0.15, 0.25, 0, topY, 0, ridgeMat);
       }
-      
-      const drawHipTrim = (x1: number, z1: number, x2: number, z2: number) => {
-        const dx = x2 - x1, dy = eY - topY, dz = z2 - z1;
-        const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
-        const trim = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, len), ridgeMat);
-        trim.position.set(x1 + dx/2, topY + dy/2 + 0.06, z1 + dz/2);
-        trim.lookAt(x2, eY + 0.06, z2);
-        scene.add(trim);
-      };
-      drawHipTrim(-rX, 0, -eX, eZ);
-      drawHipTrim(-rX, 0, -eX, -eZ);
-      drawHipTrim(rX, 0, eX, eZ);
-      drawHipTrim(rX, 0, eX, -eZ);
+    }
+    else if (caidas === 3) {
+      // One side Hip (Left), one side Gable (Right)
+      const rX = halfL - halfA; 
+      // Main slopes starting from hip apex (-rX) to gable end (eX)
+      createFace([ -eX, bY, eZ, eX, bY, eZ, eX, topY, 0, -rX, topY, 0 ], roofMat[0]);
+      createFace([ eX, bY, -eZ, -eX, bY, -eZ, -rX, topY, 0, eX, topY, 0 ], roofMat[1]);
+      // Hip end (Left)
+      createFace([ -eX, bY, -eZ, -eX, bY, eZ, -rX, topY, 0 ], colaMats[0]);
+      // Gable end (Right)
+      createFace([ halfL, wallH, halfA, halfL, wallH, -halfA, halfL, ridgeY, 0 ], wallMat);
+      drawLine(new THREE.Vector3(-rX, topY, 0), new THREE.Vector3(eX, topY, 0));
+    }
+    else if (caidas === 4) {
+      // Full Hip roof
+      const rX = Math.max(0, halfL - halfA);
+      createFace([ -eX, bY, eZ, eX, bY, eZ, rX, topY, 0, -rX, topY, 0 ], roofMat[0]);
+      createFace([ eX, bY, -eZ, -eX, bY, -eZ, -rX, topY, 0, rX, topY, 0 ], roofMat[1]);
+      createFace([ -eX, bY, -eZ, -eX, bY, eZ, -rX, topY, 0 ], colaMats[0]);
+      createFace([ eX, bY, eZ, eX, bY, -eZ, rX, topY, 0 ], colaMats[1]);
+      if (rX > 0) addBox(rX*2, 0.15, 0.25, 0, topY, 0, ridgeMat);
     }
 
-
-
-    /* ─────────────────────────────────────────
-       ORBIT CONTROLS (manual, no deps)
-    ───────────────────────────────────────── */
-    let dragging = false;
-    let prevX = 0, prevY = 0;
-    let lastTX = 0, lastTY = 0, lastPinch = 0;
-
-    const onDown  = (e: MouseEvent) => { dragging = true; prevX = e.clientX; prevY = e.clientY; };
-    const onUp    = ()               => { dragging = false; };
-    const onMove  = (e: MouseEvent) => {
+    // Orbit Controls
+    let dragging = false, prevX = 0, prevY = 0, lastTX = 0, lastTY = 0, lastPinch = 0;
+    const onDown = (e: MouseEvent) => { dragging = true; prevX = e.clientX; prevY = e.clientY; };
+    const onUp = () => { dragging = false; };
+    const onMove = (e: MouseEvent) => {
       if (!dragging) return;
       theta -= (e.clientX - prevX) * 0.008;
       phi = Math.max(0.12, Math.min(Math.PI / 2.05, phi + (e.clientY - prevY) * 0.007));
@@ -318,11 +233,9 @@ export default function RoofViewer3D({
     };
     const onTStart = (e: TouchEvent) => {
       if (e.touches.length === 1) { lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY; }
-      if (e.touches.length === 2)
-        lastPinch = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      else if (e.touches.length === 2) lastPinch = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     };
     const onTMove = (e: TouchEvent) => {
-      e.preventDefault();
       if (e.touches.length === 1) {
         theta -= (e.touches[0].clientX - lastTX) * 0.011;
         phi = Math.max(0.12, Math.min(Math.PI / 2.05, phi + (e.touches[0].clientY - lastTY) * 0.009));
@@ -367,7 +280,7 @@ export default function RoofViewer3D({
       renderer.dispose();
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
-  }, [largo, ancho, filas, columnas, colaActiva, colaBase, colaAltura, theme]);
+  }, [largo, ancho, filas, columnas, colaActiva, colaBase, colaAltura, caidas, theme]);
 
   return (
     <div

@@ -49,6 +49,7 @@ export interface CalculoResult {
     cola_pato: ColaPato;
     total_general: number;
     total_metros_lineales: number;
+    caidas: number;
   };
 }
 
@@ -62,7 +63,8 @@ function calcular(
   colaActiva: boolean,
   colaBase: number,
   colaAltura: number,
-  colaCantidad: number
+  colaCantidad: number,
+  caidas: number = 2
 ): CalculoResult | null {
   if (!producto) return null;
 
@@ -150,6 +152,7 @@ function calcular(
       cola_pato:      colaPato,
       total_general:  totalGeneral,
       total_metros_lineales: totalMetrosLineales,
+      caidas:         caidas,
     },
   };
 }
@@ -164,10 +167,11 @@ export function useCalculo(
   colaActiva: boolean = false,
   colaBase: number = 2,
   colaAltura: number = 1.5,
-  colaCantidad: number = 1
+  colaCantidad: number = 1,
+  caidas: number = 2
 ): CalculoResult | null {
   return useMemo(
-    () => calcular(techoLargo, techoAncho, producto, traslapeCm, colaActiva, colaBase, colaAltura, colaCantidad),
-    [techoLargo, techoAncho, producto, traslapeCm, colaActiva, colaBase, colaAltura, colaCantidad]
+    () => calcular(techoLargo, techoAncho, producto, traslapeCm, colaActiva, colaBase, colaAltura, colaCantidad, caidas),
+    [techoLargo, techoAncho, producto, traslapeCm, colaActiva, colaBase, colaAltura, colaCantidad, caidas]
   );
 }

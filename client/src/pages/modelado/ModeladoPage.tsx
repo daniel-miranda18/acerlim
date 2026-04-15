@@ -21,7 +21,8 @@ const ModeladoPage: React.FC = () => {
     largo: 48000, 
     ancho: 24500, 
     tipo: 'lisa',
-    nombre: 'Nuevo Diseño de Techo'
+    nombre: 'Nuevo Diseño de Techo',
+    caidas: 2
   });
 
   const [zoom, setZoom] = useState(1);
@@ -35,7 +36,7 @@ const ModeladoPage: React.FC = () => {
         setParams(prev => ({
           ...prev,
           id_producto: p.id_producto,
-          nombre: p.nombre,
+          nombre: p.descripcion || '',
           largo: Number(p.medida_largo) * 1000,
           ancho: Number(p.medida_ancho) * 1000,
         }));

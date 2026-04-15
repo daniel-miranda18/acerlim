@@ -134,6 +134,22 @@ const CalculadoraTecho: React.FC<CalculadoraTechoProps> = ({ params, onUpdate })
               </CCol>
             </CRow>
 
+            <h6 className="text-[10px] text-uppercase text-secondary ls-1 mb-2 fw-bold">Número de Caídas</h6>
+            <div className="d-flex gap-2 mb-4">
+              {[1, 2, 3, 4].map((num) => (
+                <CButton
+                  key={num}
+                  color={params.caidas === num || (!params.caidas && num === 2) ? "primary" : "secondary"}
+                  variant={params.caidas === num || (!params.caidas && num === 2) ? "solid" : "ghost"}
+                  className={`flex-grow-1 py-2 fw-bold ${params.caidas !== num && !(num === 2 && !params.caidas) ? 'text-secondary-emphasis' : ''}`}
+                  onClick={() => onUpdate({ caidas: num })}
+                >
+                  {num} {num === 1 ? "Caída" : "Caídas"}
+                  {num === 2 && !params.caidas && <small className="d-block text-[8px] opacity-75">Por defecto</small>}
+                </CButton>
+              ))}
+            </div>
+
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <h6 className="text-[10px] text-uppercase text-secondary ls-1 mb-0 fw-bold">Pendientes de Techo</h6>
                 <CButton color="link" className="p-0 text-primary text-decoration-none fw-semibold" size="sm" onClick={addSlope}>

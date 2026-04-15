@@ -18,6 +18,7 @@ interface Props {
   colaBase: number;
   colaAltura: number;
   colaCantidad: number;
+  caidas: number;
 }
 
 const PADDING = 60;
@@ -29,7 +30,8 @@ export interface PasoPlano2DRef {
 
 const PasoPlano2D = forwardRef<PasoPlano2DRef, Props>(({
   producto, calculo, techoLargo, techoAncho, onImagenGenerada,
-  colaActiva, colaBase, colaAltura, colaCantidad
+  colaActiva, colaBase, colaAltura, colaCantidad,
+  caidas
 }, ref) => {
   const [viewMode, setViewMode] = useState<ViewMode>("superior");
   const [orientation, setOrientation] = useState<OrientationMode>("horizontal");
@@ -142,7 +144,7 @@ const PasoPlano2D = forwardRef<PasoPlano2DRef, Props>(({
               showNumeros={showNumeros} theme={theme} stageScale={stageScale} stagePos={stagePos}
               onPosChange={setStagePos} onWheel={handleWheel} width={dimensions.width} height={dimensions.height}
               orientation={orientation} colaActiva={colaActiva} colaBase={colaBase} colaAltura={colaAltura}
-              colaCantidad={colaCantidad} franjas={franjas}
+              colaCantidad={colaCantidad} franjas={franjas} caidas={caidas}
             />
           ) : (
             <VistaIsometrica
@@ -151,7 +153,7 @@ const PasoPlano2D = forwardRef<PasoPlano2DRef, Props>(({
               showNumeros={showNumeros} theme={theme} stageScale={stageScale} stagePos={stagePos}
               onPosChange={setStagePos} onWheel={handleWheel} width={dimensions.width} height={dimensions.height}
               orientation={orientation} colaActiva={colaActiva} colaBase={colaBase} colaAltura={colaAltura}
-              colaCantidad={colaCantidad} franjas={franjas}
+              colaCantidad={colaCantidad} franjas={franjas} caidas={caidas}
             />
           )}
         </div>
@@ -191,6 +193,7 @@ interface ViewProps {
   orientation: OrientationMode;
   colaActiva: boolean; colaBase: number; colaAltura: number; colaCantidad: number;
   franjas: Franja[];
+  caidas: number;
 }
 
 /* ────────── HELPERS ────────── */
@@ -210,7 +213,7 @@ function getSidesForCount(count: number): Side[] {
 const VistaSuperior: React.FC<ViewProps> = ({
   filas, cols, largoEfectivo, anchoEfectivo, calLargo, calAncho, techoLargo, techoAncho,
   showNumeros, theme, stageScale, stagePos, onPosChange, onWheel, width, height, orientation,
-  colaActiva, colaBase, colaAltura, colaCantidad: _colaCantidad, franjas
+  colaActiva, colaBase, colaAltura, colaCantidad: _colaCantidad, franjas, caidas
 }) => {
   const isHoriz = orientation === "horizontal";
   const drawWidth  = isHoriz ? techoLargo : techoAncho;
@@ -499,6 +502,83 @@ const VistaSuperior: React.FC<ViewProps> = ({
           text={`${drawHeight.toFixed(1)} m`} fontSize={12} fontStyle="bold"
           fill={theme === "dark" ? "#94a3b8" : "#64748b"} rotation={-90}
           width={bh} align="center" />
+
+        {/* ── Indicadores de Caída (Visual) ── */}
+        {(() => {
+          const ridgeColor = theme === "dark" ? "#f8fafc" : "#0f172a";
+          const arrowColor = theme === "dark" ? "#fbbf24" : "#d97706";
+          
+          const drawArrow = (ax: number, ay: number, rot: number) => (
+             <Group x={ax} y={ay} rotation={rot}>
+                <Line points={[0, 0, 0, 15]} stroke={arrowColor} strokeWidth={2} />
+                <Line points={[-4, 10, 0, 15, 4, 10]} stroke={arrowColor} strokeWidth={2} />
+             </Group>
+          );
+
+          if (caidas === 1) {
+            return (
+              <Group>
+                {drawArrow(ox + bw/2, oy + bh/2 - 10, 0)}
+              </Group>
+            );
+          }
+          if (caidas === 2) {
+            const ry = isHoriz ? oy + bh/2 : oy + bh/2; // It's always middle
+            const linePts = isHoriz ? [ox, oy + bh/2, ox + bw, oy + bh/2] : [ox + bw/2, oy, ox + bw/2, oy + bh];
+            return (
+              <Group>
+                <Line points={linePts} stroke={ridgeColor} strokeWidth={2} dash={[10, 5]} />
+                {isHoriz ? (
+                  <>
+                    {drawArrow(ox + bw/2, oy + bh/4, 180)}
+                    {drawArrow(ox + bw/2, oy + 3*bh/4, 0)}
+                  </>
+                ) : (
+                  <>
+                    {drawArrow(ox + bw/4, oy + bh/2, 90)}
+                    {drawArrow(ox + 3*bw/4, oy + bh/2, -90)}
+                  </>
+                )}
+              </Group>
+            );
+          }
+          if (caidas === 3 || caidas === 4) {
+            const hw = (bh / 2) * 0.8; // Hip width approx
+            const midY = oy + bh/2;
+            
+            // Layout: Hip on Left for caidas=3
+            const rStart = ox + hw; 
+            const rEnd = caidas === 4 ? (ox + bw - hw) : (ox + bw);
+            
+            return (
+              <Group>
+                {/* Ridge line */}
+                <Line points={[rStart, midY, rEnd, midY]} stroke={ridgeColor} strokeWidth={2} />
+                
+                {/* Hip lines left (Always present for 3 and 4) */}
+                <Line points={[ox, oy, rStart, midY]} stroke={ridgeColor} strokeWidth={2} />
+                <Line points={[ox, oy + bh, rStart, midY]} stroke={ridgeColor} strokeWidth={2} />
+                
+                {/* Right side: Hip for 4, Gable for 3 */}
+                {caidas === 4 ? (
+                   <>
+                    <Line points={[ox + bw, oy, rEnd, midY]} stroke={ridgeColor} strokeWidth={2} />
+                    <Line points={[ox + bw, oy + bh, rEnd, midY]} stroke={ridgeColor} strokeWidth={2} />
+                   </>
+                ) : (
+                   <Line points={[ox + bw, oy, ox + bw, oy + bh]} stroke={ridgeColor} strokeWidth={2} />
+                )}
+                
+                {/* Arrows */}
+                {drawArrow(ox + bw/2, oy + bh/4, 180)}
+                {drawArrow(ox + bw/2, oy + 3*bh/4, 0)}
+                {drawArrow(ox + hw/2, midY, 90)}
+                {caidas === 4 && drawArrow(ox + bw - hw/2, midY, -90)}
+              </Group>
+            );
+          }
+          return null;
+        })()}
       </Layer>
     </Stage>
   );
@@ -508,7 +588,7 @@ const VistaSuperior: React.FC<ViewProps> = ({
 const VistaIsometrica: React.FC<ViewProps> = ({
   filas, cols, largoEfectivo, anchoEfectivo, calLargo, calAncho, techoLargo, techoAncho,
   showNumeros, theme, stageScale, stagePos, onPosChange, onWheel, width, height, orientation,
-  colaActiva, colaBase, colaAltura: _colaAltura, colaCantidad, franjas
+  colaActiva, colaBase, colaAltura, colaCantidad, franjas, caidas
 }) => {
   const isHoriz = orientation === "horizontal";
 

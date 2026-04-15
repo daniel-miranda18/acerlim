@@ -75,6 +75,7 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
       formData.append("largo", calculo.datosJson.techo_largo.toString());
       formData.append("ancho", calculo.datosJson.techo_ancho.toString());
       formData.append("area_plana", (calculo.datosJson.techo_largo * calculo.datosJson.techo_ancho).toString());
+      formData.append("caidas", calculo.datosJson.caidas.toString());
       formData.append("datos_json", JSON.stringify(calculo.datosJson));
 
       if (imagenBase64) {
