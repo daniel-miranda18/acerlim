@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const pedidoDetalleSchema = z.object({
   id_producto: z.number(),
-  cantidad: z.number().int().positive(),
+  cantidad: z.number().positive(),
   precio_unitario: z.number().positive(),
   subtotal: z.number().optional(),
 });

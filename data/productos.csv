@@ -1,0 +1,21 @@
+id_producto,id_tipo_producto,descripcion,medida_largo,medida_ancho,estado,fecha_creacion
+1,1,Calamina Trapezoidal Zincalum e=0.20mm,1.80,0.80,1,2022-12-01 08:00:00
+2,1,Calamina Trapezoidal Zincalum e=0.20mm,2.00,0.80,1,2022-12-01 08:00:00
+3,1,Calamina Trapezoidal Zincalum e=0.20mm,3.00,0.80,1,2022-12-01 08:00:00
+4,1,Calamina Trapezoidal Zincalum e=0.25mm,2.00,0.80,1,2022-12-01 08:00:00
+5,1,Calamina Trapezoidal Zincalum e=0.25mm,3.00,0.80,1,2022-12-01 08:00:00
+6,1,Calamina Trapezoidal Zincalum e=0.30mm,3.00,0.80,1,2022-12-01 08:00:00
+7,1,Calamina Trapezoidal Galvanizada e=0.17mm,1.80,0.80,1,2022-12-01 08:00:00
+8,1,Calamina Trapezoidal Galvanizada e=0.17mm,2.00,0.80,1,2022-12-01 08:00:00
+9,1,Calamina Trapezoidal Galvanizada e=0.20mm,3.00,0.80,1,2022-12-01 08:00:00
+10,1,Calamina Trapezoidal Galvanizada e=0.20mm,4.00,0.80,1,2022-12-01 08:00:00
+11,2,Calamina Ondulada Zincalum e=0.20mm,2.00,0.80,1,2022-12-01 08:00:00
+12,2,Calamina Ondulada Galvanizada e=0.17mm,2.00,0.80,1,2022-12-01 08:00:00
+13,2,Calamina Ondulada Galvanizada e=0.20mm,3.00,0.80,1,2022-12-01 08:00:00
+14,3,Plancha Lisa Zincalum e=0.25mm,2.44,1.22,1,2022-12-01 08:00:00
+15,3,Plancha Lisa Galvanizada e=0.20mm,2.44,1.22,1,2022-12-01 08:00:00
+16,5,Calamina Prepintada Roja e=0.20mm,2.00,0.80,1,2022-12-01 08:00:00
+17,5,Calamina Prepintada Verde e=0.20mm,3.00,0.80,1,2022-12-01 08:00:00
+18,5,Calamina Prepintada Azul e=0.20mm,3.00,0.80,1,2022-12-01 08:00:00
+19,5,Calamina Prepintada Marron e=0.25mm,2.00,0.80,1,2022-12-01 08:00:00
+20,4,Canaleta Zincalum 3m,3.00,0.25,1,2022-12-01 08:00:00

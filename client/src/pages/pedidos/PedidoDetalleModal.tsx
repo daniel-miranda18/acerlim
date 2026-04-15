@@ -57,8 +57,8 @@ export default function PedidoDetalleModal({ visible, onClose, pedido }: Props) 
               <thead style={{ background: "var(--cui-secondary-bg)" }}>
                 <tr>
                   <th>Producto</th>
-                  <th className="text-center">Cantidad</th>
-                  <th className="text-end">Precio Unit. (Bs)</th>
+                  <th className="text-center">Metros Lineales</th>
+                  <th className="text-end">Precio / ml (Bs)</th>
                   <th className="text-end">Subtotal (Bs)</th>
                 </tr>
               </thead>
@@ -66,8 +66,8 @@ export default function PedidoDetalleModal({ visible, onClose, pedido }: Props) 
                 {pedido.detalles && pedido.detalles.length > 0 ? (
                   pedido.detalles.map((d) => (
                      <tr key={d.id_detalle}>
-                      <td>{d.producto?.descripcion || `Producto ID: ${d.id_producto}`}</td>
-                      <td className="text-center fw-bold">{d.cantidad}</td>
+                      <td>{d.producto?.descripcion || d.producto?.tipo_producto?.nombre || `Producto ID: ${d.id_producto}`}</td>
+                      <td className="text-center fw-bold">{Number(d.cantidad).toFixed(2)} ml</td>
                       <td className="text-end">{Number(d.precio_unitario).toFixed(2)}</td>
                       <td className="text-end fw-bold">{Number(d.subtotal).toFixed(2)}</td>
                     </tr>

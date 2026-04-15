@@ -1,0 +1,11 @@
+id_precio,nombre,precio_por_metro,moneda,estado,fecha_creacion
+1,Zincalum 0.17mm Trapezoidal,22.50,BOB,1,2022-12-01 08:00:00
+2,Zincalum 0.20mm Trapezoidal,28.00,BOB,1,2022-12-01 08:00:00
+3,Zincalum 0.25mm Trapezoidal,36.50,BOB,1,2022-12-01 08:00:00
+4,Zincalum 0.30mm Trapezoidal,45.00,BOB,1,2022-12-01 08:00:00
+5,Galvanizada 0.15mm,18.00,BOB,1,2022-12-01 08:00:00
+6,Galvanizada 0.17mm,22.00,BOB,1,2022-12-01 08:00:00
+7,Galvanizada 0.20mm,27.50,BOB,1,2022-12-01 08:00:00
+8,Prepintada 0.20mm,38.00,BOB,1,2022-12-01 08:00:00
+9,Prepintada 0.25mm,48.00,BOB,1,2022-12-01 08:00:00
+10,Canaleta Zincalum,15.00,BOB,1,2022-12-01 08:00:00

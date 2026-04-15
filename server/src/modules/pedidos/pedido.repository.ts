@@ -10,6 +10,7 @@ const formatPedido = (p: any) => ({
   fecha_actualizacion: formatDate(p.fecha_actualizacion),
   detalles: p.detalles?.map((d: any) => ({
     ...d,
+    cantidad: Number(d.cantidad),
     precio_unitario: Number(d.precio_unitario),
     subtotal: d.subtotal ? Number(d.subtotal) : null,
   })) ?? [],
@@ -22,7 +23,7 @@ export const pedidoRepository = {
       include: {
         detalles: {
           where: { estado: 1 },
-          include: { producto: true },
+          include: { producto: { include: { tipo_producto: true } } },
         },
         dibujo: true,
       },
@@ -37,7 +38,7 @@ export const pedidoRepository = {
       include: {
         detalles: {
           where: { estado: 1 },
-          include: { producto: true },
+          include: { producto: { include: { tipo_producto: true } } },
         },
         dibujo: true,
       },
@@ -70,7 +71,7 @@ export const pedidoRepository = {
         },
         include: {
           detalles: {
-            include: { producto: true },
+            include: { producto: { include: { tipo_producto: true } } },
           },
           dibujo: true,
         },
@@ -119,7 +120,7 @@ export const pedidoRepository = {
       return tx.pedido.findUnique({
         where: { id_pedido: id },
         include: {
-          detalles: { where: { estado: 1 }, include: { producto: true } },
+          detalles: { where: { estado: 1 }, include: { producto: { include: { tipo_producto: true } } } },
           dibujo: true,
         },
       });

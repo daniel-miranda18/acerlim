@@ -1,0 +1,5 @@
+id_proveedor,nombre,contacto,telefono,correo,direccion,estado,fecha_creacion
+1,ACEPAR S.A.,Carlos Mendoza,591-2-2441230,ventas@acepar.bo,"Av. Montes 1234, La Paz",1,2022-12-01 08:00:00
+2,TERNIUM Bolivia,Ana Flores,591-3-3441111,aflores@ternium.com.bo,"Parque Industrial, Santa Cruz",1,2022-12-01 08:00:00
+3,SIDERSA Bolivia,Jorge Vargas,591-4-4551100,jvargas@sidersa.bo,"Av. Blanco Galindo, Cochabamba",1,2022-12-01 08:00:00
+4,METALCOM Importadora,Patricia Ríos,591-2-2789900,prios@metalcom.bo,"El Alto, La Paz",1,2022-12-01 08:00:00

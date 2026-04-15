@@ -278,7 +278,7 @@ const PasoDimensiones: React.FC<Props> = ({
           </div>
           <hr className="my-2" />
           <div className="d-flex justify-content-between mb-2" style={{ fontSize: ".82rem" }}>
-            <span className="text-secondary">Ancho efectivo por calamina (−5% lateral)</span>
+            <span className="text-secondary">Ancho efectivo por calamina</span>
             <span className="fw-bold">{calculo.anchoEfectivo.toFixed(2)} m</span>
           </div>
           <div className="d-flex justify-content-between mb-2" style={{ fontSize: ".82rem" }}>
@@ -288,6 +288,10 @@ const PasoDimensiones: React.FC<Props> = ({
           <div className="d-flex justify-content-between mb-2" style={{ fontSize: ".82rem" }}>
             <span className="text-secondary">Área total del techo</span>
             <span className="fw-bold">{(techoLargo * techoAncho).toFixed(2)} m²</span>
+          </div>
+          <div className="d-flex justify-content-between mb-2" style={{ fontSize: ".82rem" }}>
+            <span className="text-secondary">Total metros lineales</span>
+            <span className="fw-bold" style={{ color: "#059669" }}>{calculo.totalMetrosLineales.toFixed(2)} ml</span>
           </div>
 
           <hr className="my-2" />

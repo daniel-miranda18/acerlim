@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CFormInput, CButton, CSpinner } from "@coreui/react";
+import { CFormInput, CFormSelect, CButton, CSpinner } from "@coreui/react";
 import toast from "react-hot-toast";
 import { dibujoService } from "../../services/dibujo.service";
 import { pedidoService } from "../../services/pedido.service";
+import { precioService } from "../../services/precio.service";
 import type { Producto } from "../../types/producto.types";
 import type { CalculoResult } from "../../hooks/useCalculo";
+import type { PrecioMetro } from "../../types/precio.types";
 
 interface Props {
   producto: Producto | null;
@@ -17,9 +19,30 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
   const navigate = useNavigate();
   const [nombreCliente, setNombreCliente] = useState("");
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-  const [precioUnitario, setPrecioUnitario] = useState<number>(0);
   const [savingTotal, setSavingTotal] = useState(false);
   const [pedidoCreado, setPedidoCreado] = useState(false);
+
+  // Precios paramétricos
+  const [precios, setPrecios] = useState<PrecioMetro[]>([]);
+  const [loadingPrecios, setLoadingPrecios] = useState(true);
+  const [precioSeleccionado, setPrecioSeleccionado] = useState<PrecioMetro | null>(null);
+
+  useEffect(() => {
+    const fetchPrecios = async () => {
+      try {
+        const res = await precioService.listar();
+        const data = res.data.data;
+        setPrecios(data);
+        if (data.length > 0) setPrecioSeleccionado(data[0]);
+      } catch (err) {
+        console.error("Error al cargar precios:", err);
+        toast.error("No se pudieron cargar los precios");
+      } finally {
+        setLoadingPrecios(false);
+      }
+    };
+    fetchPrecios();
+  }, []);
 
   if (!producto || !calculo) {
     return (
@@ -30,15 +53,17 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
     );
   }
 
-  const totalAmount = calculo.totalGeneral * precioUnitario;
+  const precioPorMetro = precioSeleccionado?.precio_por_metro ?? 0;
+  const totalMetrosLineales = calculo.totalMetrosLineales;
+  const totalAmount = +(totalMetrosLineales * precioPorMetro).toFixed(2);
 
   const handleGuardarTotal = async () => {
     if (!nombreCliente.trim()) {
       toast.error("Ingresa el nombre del cliente");
       return;
     }
-    if (precioUnitario <= 0) {
-      toast.error("Ingresa un precio unitario válido");
+    if (!precioSeleccionado) {
+      toast.error("Selecciona un precio por metro lineal");
       return;
     }
 
@@ -71,8 +96,8 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
         detalles: [
           {
             id_producto: producto.id_producto,
-            cantidad: calculo.totalGeneral,
-            precio_unitario: precioUnitario,
+            cantidad: totalMetrosLineales,
+            precio_unitario: precioPorMetro,
           },
         ],
       });
@@ -121,6 +146,17 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
             <span className="text-secondary">Distribución techo</span>
             <span className="fw-bold">{calculo.filas} filas × {calculo.cols} columnas</span>
           </div>
+          <hr className="my-2" />
+          <div className="d-flex justify-content-between mb-2" style={{ fontSize: ".82rem" }}>
+            <span className="text-secondary">Largo por calamina</span>
+            <span className="fw-bold">{calculo.datosJson.cal_largo.toFixed(2)} m</span>
+          </div>
+          <div className="d-flex justify-content-between" style={{ fontSize: ".88rem" }}>
+            <span className="fw-bold" style={{ color: "#059669" }}>Total metros lineales</span>
+            <span className="fw-bold" style={{ color: "#059669", fontSize: "1rem" }}>
+              {totalMetrosLineales.toFixed(2)} ml
+            </span>
+          </div>
         </div>
 
         {/* Formulario */}
@@ -145,19 +181,34 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
         </div>
 
         <div className="form-group">
-          <label>Precio unitario por calamina (Bs.)</label>
-          <CFormInput
-            type="number"
-            min={0}
-            step={0.01}
-            value={precioUnitario || ""}
-            onChange={(e) => setPrecioUnitario(parseFloat(e.target.value) || 0)}
-            placeholder="0.00"
-            id="input-precio-unitario"
-          />
+          <label>Precio por metro lineal ({precioSeleccionado?.moneda ?? "BOB"})</label>
+          {loadingPrecios ? (
+            <div className="d-flex align-items-center gap-2 py-2">
+              <CSpinner size="sm" /> <small className="text-secondary">Cargando precios...</small>
+            </div>
+          ) : precios.length === 0 ? (
+            <div className="text-danger" style={{ fontSize: ".82rem" }}>
+              No hay precios configurados. Ve a Configuración → Precios para crear uno.
+            </div>
+          ) : (
+            <CFormSelect
+              value={precioSeleccionado?.id_precio ?? ""}
+              onChange={(e) => {
+                const found = precios.find((p) => p.id_precio === Number(e.target.value));
+                setPrecioSeleccionado(found ?? null);
+              }}
+              id="select-precio-metro"
+            >
+              {precios.map((p) => (
+                <option key={p.id_precio} value={p.id_precio}>
+                  {p.nombre} — Bs. {Number(p.precio_por_metro).toFixed(2)} / ml
+                </option>
+              ))}
+            </CFormSelect>
+          )}
         </div>
 
-        {precioUnitario > 0 && (
+        {precioSeleccionado && (
           <div className="p-3 rounded mb-4" style={{
             background: "linear-gradient(135deg, #2563EB, #1d4ed8)",
             color: "#fff"
@@ -169,8 +220,9 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
                   Bs. {totalAmount.toFixed(2)}
                 </div>
               </div>
-              <div style={{ fontSize: ".78rem", opacity: .7 }}>
-                {calculo.totalGeneral} × Bs. {precioUnitario.toFixed(2)}
+              <div style={{ fontSize: ".78rem", opacity: .7, textAlign: "right" }}>
+                <div>{calculo.totalGeneral} cal × {calculo.datosJson.cal_largo.toFixed(2)} m = {totalMetrosLineales.toFixed(2)} ml</div>
+                <div>{totalMetrosLineales.toFixed(2)} ml × Bs. {precioPorMetro.toFixed(2)}</div>
               </div>
             </div>
           </div>
@@ -181,7 +233,7 @@ const PasoGuardar: React.FC<Props> = ({ producto, calculo, imagenBase64 }) => {
             color="primary"
             className="flex-fill d-flex align-items-center justify-content-center gap-2 py-2 fs-5 fw-bold"
             onClick={handleGuardarTotal}
-            disabled={savingTotal || pedidoCreado || !nombreCliente.trim() || precioUnitario <= 0}
+            disabled={savingTotal || pedidoCreado || !nombreCliente.trim() || !precioSeleccionado}
             style={{ minHeight: "50px" }}
           >
             {savingTotal ? <CSpinner size="sm" /> : null}

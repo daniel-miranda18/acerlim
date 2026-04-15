@@ -28,6 +28,7 @@ export interface CalculoResult {
   totalTecho: number;
   totalColas: number;
   totalGeneral: number;
+  totalMetrosLineales: number;
   total: number;
   traslapeCm: number;
   nFranjas: number;
@@ -47,6 +48,7 @@ export interface CalculoResult {
     total_techo: number;
     cola_pato: ColaPato;
     total_general: number;
+    total_metros_lineales: number;
   };
 }
 
@@ -69,11 +71,11 @@ function calcular(
 
   const traslapeMt = traslapeCm / 100;
   const largoEfectivo = +(calLargo - traslapeMt).toFixed(2);
-  const anchoEfectivo = +(calAncho * 0.95).toFixed(2);
+  const anchoEfectivo = calAncho;
 
   if (largoEfectivo <= 0 || anchoEfectivo <= 0) return null;
 
-  const filas = Math.ceil(techoLargo / largoEfectivo);
+  const filas = techoLargo <= calLargo ? 1 : 1 + Math.ceil((techoLargo - calLargo) / largoEfectivo);
   const cols  = Math.ceil(techoAncho / anchoEfectivo);
   const totalTecho = filas * cols;
 
@@ -90,7 +92,7 @@ function calcular(
     // 2. Altura proporcional por franja y calaminas necesarias
     for (let i = 1; i <= nFranjas; i++) {
       const h_i = colaAltura * (nFranjas - i + 1) / nFranjas;
-      const calPorFranja = Math.ceil(h_i / largoEfectivo);
+      const calPorFranja = h_i <= calLargo ? 1 : 1 + Math.ceil((h_i - calLargo) / largoEfectivo);
       franjas.push({
         franja: i,
         altura: parseFloat(h_i.toFixed(2)),
@@ -106,6 +108,7 @@ function calcular(
   }
 
   const totalGeneral = colaActiva ? totalTecho + totalColas : totalTecho;
+  const totalMetrosLineales = +(totalGeneral * calLargo).toFixed(2);
 
   const colaPato: ColaPato = {
     activa:      colaActiva,
@@ -126,6 +129,7 @@ function calcular(
     totalTecho,
     totalColas,
     totalGeneral,
+    totalMetrosLineales,
     total: totalGeneral,
     traslapeCm,
     nFranjas,
@@ -145,6 +149,7 @@ function calcular(
       total_techo:    totalTecho,
       cola_pato:      colaPato,
       total_general:  totalGeneral,
+      total_metros_lineales: totalMetrosLineales,
     },
   };
 }
