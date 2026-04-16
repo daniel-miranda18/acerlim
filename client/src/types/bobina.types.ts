@@ -3,7 +3,8 @@ export interface Bobina {
   id_bobina: number;
   id_lote: number;
   lote_rel?: any; 
-  color: string;
+  id_color: number | null;
+  color_rel?: any;
   espesor: number | string;
   ancho: number | string;
   peso_inicial: number | string;
@@ -19,7 +20,8 @@ export interface Bobina {
 export interface StockBobina {
   ancho: number;
   espesor: number;
-  color: string;
+  id_color: number | null;
+  color_rel?: any;
   total_peso_actual: number;
   cantidad_bobinas: number;
 }

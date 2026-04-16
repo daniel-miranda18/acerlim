@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const crearBobinaSchema = z.object({
   id_lote: z.coerce.number().int().positive("El lote es requerido"),
-  color: z.string().min(1, "El color es requerido").max(50, "Máximo 50 caracteres"),
+  id_color: z.coerce.number().int().positive().optional().nullable(),
   espesor: z.coerce.number().positive("Debe ser mayor a 0"),
   ancho: z.coerce.number().positive("Debe ser mayor a 0"),
   peso_inicial: z.coerce.number().positive("Debe ser mayor a 0"),

@@ -9,6 +9,7 @@ router.get("/", pedidoController.listar);
 router.get("/:id", pedidoController.obtener);
 router.post("/", validate(crearPedidoSchema), pedidoController.crear);
 router.put("/:id", validate(actualizarPedidoSchema), pedidoController.actualizar);
+router.patch("/:id/estado", pedidoController.cambiarEstado);
 router.delete("/:id", pedidoController.eliminar);
 
 export default router;

@@ -118,7 +118,7 @@ export default function BobinasPage() {
     const data = tableStock.getFilteredRowModel().rows.map((row) => ({
       "Tipo (Ancho)": row.original.ancho,
       "Espesor": row.original.espesor,
-      "Color": row.original.color,
+      "Color": row.original.color_rel?.nombre || "—",
       "Cantidad Bobinas": row.original.cantidad_bobinas,
       "Peso Total (kg)": Number(row.original.total_peso_actual).toFixed(2),
     }));
@@ -130,7 +130,7 @@ export default function BobinasPage() {
     const data = tableHist.getFilteredRowModel().rows.map((row) => ({
       "Lote": row.original.lote_rel?.codigo_lote || "—",
       "Ingreso": (row.original.lote_rel?.fecha_ingreso || "").substring(0, 10),
-      "Color": row.original.color,
+      "Color": row.original.color_rel?.nombre || "—",
       "Espesor": row.original.espesor,
       "Ancho": row.original.ancho,
       "Peso Inicial (kg)": row.original.peso_inicial,
@@ -147,8 +147,25 @@ export default function BobinasPage() {
       { header: "Espesor (mm)", accessorKey: "espesor" },
       { 
         header: "Color", 
-        accessorKey: "color",
-        cell: ({ getValue }) => <CBadge color="info">{getValue() as string}</CBadge>,
+        accessorKey: "color_rel.nombre",
+        cell: ({ row }) => {
+          const color = row.original.color_rel;
+          if (!color) return <span className="text-secondary small">—</span>;
+          return (
+            <div className="d-flex align-items-center gap-2">
+              <div
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 4,
+                  backgroundColor: color.codigo_hex,
+                  border: "1px solid rgba(0,0,0,.1)",
+                }}
+              />
+              <span className="small fw-medium">{color.nombre}</span>
+            </div>
+          );
+        },
       },
       { header: "Cantidad Bobinas", accessorKey: "cantidad_bobinas" },
       { 
@@ -164,22 +181,41 @@ export default function BobinasPage() {
     () => [
       { 
         header: "Lote", 
-        accessorKey: "lote_rel",
+        accessorKey: "lote_rel.codigo_lote",
         cell: ({ row }) => row.original.lote_rel?.codigo_lote || "—" 
       },
       { 
         header: "Ingreso", 
-        accessorKey: "lote_rel",
-        id: "fecha_ingreso",
+        accessorKey: "lote_rel.fecha_ingreso",
         cell: ({ row }) => (row.original.lote_rel?.fecha_ingreso || "").substring(0, 10),
       },
       {
         header: "Proveedor",
-        accessorKey: "lote_rel",
-        id: "proveedor",
+        accessorKey: "lote_rel.proveedor_rel.nombre",
         cell: ({ row }) => row.original.lote_rel?.proveedor_rel?.nombre || "—",
       },
-      { header: "Color", accessorKey: "color" },
+      { 
+        header: "Color", 
+        accessorKey: "color_rel.nombre",
+        cell: ({ row }) => {
+          const color = row.original.color_rel;
+          if (!color) return <span className="text-secondary small">—</span>;
+          return (
+            <div className="d-flex align-items-center gap-2">
+              <div
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 4,
+                  backgroundColor: color.codigo_hex,
+                  border: "1px solid rgba(0,0,0,.1)",
+                }}
+              />
+              <span className="small fw-medium">{color.nombre}</span>
+            </div>
+          );
+        },
+      },
       { header: "Espesor", accessorKey: "espesor" },
       { header: "Ancho", accessorKey: "ancho" },
       { 
@@ -188,11 +224,31 @@ export default function BobinasPage() {
         cell: ({ getValue }) => `${getValue()} kg`,
       },
       { 
-        header: "Metros Lineales", 
-        accessorKey: "metros_lineales_inicial",
-        cell: ({ getValue }) => {
-          const val = getValue();
-          return val != null ? `${val} m` : "—";
+        header: "M. Lineales (Stock)", 
+        id: "metros_lineales",
+        cell: ({ row }) => {
+          const inicial = Number(row.original.metros_lineales_inicial || 0);
+          const actual = Number(row.original.metros_lineales_actual || 0);
+          
+          if (!inicial && !actual) return <span className="text-secondary small">—</span>;
+
+          let colorClass = "text-success"; // > 60%
+          if (inicial > 0) {
+            const ratio = actual / inicial;
+            if (ratio <= 0.3) colorClass = "text-danger";
+            else if (ratio <= 0.6) colorClass = "text-warning";
+          } else if (actual === 0) {
+             colorClass = "text-danger";
+          }
+
+          return (
+            <div className="d-flex flex-column">
+              <span className={`fw-bold ${colorClass}`}>{actual.toFixed(2)} m</span>
+              <span className="text-secondary" style={{ fontSize: "0.75rem" }}>
+                de {inicial.toFixed(2)} m
+              </span>
+            </div>
+          );
         },
       },
       {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import type { Bobina } from "../../types/bobina.types";
+import type { Color } from "../../types/color.types";
 import {
   CModal,
   CModalHeader,
@@ -16,6 +17,7 @@ import {
   CSpinner,
 } from "@coreui/react";
 import { useLotes } from "../../hooks/useLotes";
+import { useColores } from "../../hooks/useColores";
 
 interface BobinaFormProps {
   visible: boolean;
@@ -35,11 +37,12 @@ export default function BobinaForm({
   errors = {},
 }: BobinaFormProps) {
   const { lotes } = useLotes();
+  const { colores } = useColores();
 
   const [formData, setFormData] = useState<Partial<Bobina>>(
     bobina || {
       id_lote: 0,
-      color: "",
+      id_color: null,
       espesor: 0,
       ancho: 0,
       peso_inicial: 0,
@@ -78,7 +81,7 @@ export default function BobinaForm({
     } else {
       setFormData({
         id_lote: 0,
-        color: "",
+        id_color: null,
         espesor: 0,
         ancho: 0,
         peso_inicial: 0,
@@ -100,8 +103,10 @@ export default function BobinaForm({
       "peso_actual",
       "metros_lineales_inicial",
       "metros_lineales_actual",
-      "id_proveedor",
+      "id_lote",
+      "id_color",
     ].includes(name);
+
     setFormData((prev: any) => ({
       ...prev,
       [name]: isNumber ? (value === "" ? null : Number(value)) : value,
@@ -125,10 +130,14 @@ export default function BobinaForm({
       delete (submitData as any).fecha_creacion;
       delete (submitData as any).fecha_actualizacion;
       delete (submitData as any).estado;
+      delete (submitData as any).lote_rel;
+      delete (submitData as any).color_rel;
     }
     
     onSubmit(submitData);
   };
+
+  const selectedColor = colores.find((c) => c.id_color === formData.id_color);
 
   return (
     <CModal visible={visible} onClose={onClose} backdrop="static" size="lg">
@@ -202,18 +211,44 @@ export default function BobinaForm({
               </div>
             </CCol>
             
-            <CCol md={4}>
+            <CCol md={12}>
               <CFormLabel>Color</CFormLabel>
-              <CFormInput
-                name="color"
-                value={formData.color || ""}
-                onChange={handleChange}
-                invalid={!!errors.color}
-                feedbackInvalid={errors.color?.[0]}
-                required
-              />
+              <div className="d-flex align-items-center gap-2">
+                <CFormSelect
+                  name="id_color"
+                  value={formData.id_color || ""}
+                  onChange={handleChange}
+                  invalid={!!errors.id_color}
+                  style={{ flex: 1 }}
+                >
+                  <option value="">Seleccione un color...</option>
+                  {colores.map((c) => (
+                    <option key={c.id_color} value={c.id_color}>
+                      {c.nombre} ({c.codigo_hex})
+                    </option>
+                  ))}
+                </CFormSelect>
+                {selectedColor && (
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 8,
+                      backgroundColor: selectedColor.codigo_hex,
+                      border: "2px solid rgba(0,0,0,.12)",
+                      boxShadow: `0 2px 6px ${selectedColor.codigo_hex}44`,
+                      flexShrink: 0,
+                    }}
+                    title={selectedColor.codigo_hex}
+                  />
+                )}
+              </div>
+              {errors.id_color && (
+                <div className="invalid-feedback d-block">{errors.id_color[0]}</div>
+              )}
             </CCol>
-            <CCol md={4}>
+
+            <CCol md={6}>
               <CFormLabel>Espesor (mm)</CFormLabel>
               <CFormInput
                 type="number"
@@ -227,7 +262,7 @@ export default function BobinaForm({
                 required
               />
             </CCol>
-            <CCol md={4}>
+            <CCol md={6}>
               <CFormLabel>Ancho (mm)</CFormLabel>
               <CFormInput
                 type="number"

@@ -63,6 +63,15 @@ export const usePedidos = () => {
     await fetchPedidos();
   };
 
+  const cambiarEstadoPedido = async (id: number, estado_pedido: string) => {
+    const res = await pedidoService.cambiarEstado(id, estado_pedido);
+    if (!res.data.success) {
+      throw new Error(res.data.message || "Error al cambiar estado");
+    }
+    await fetchPedidos();
+    return res.data.data;
+  };
+
   return {
     pedidos,
     loading,
@@ -72,5 +81,6 @@ export const usePedidos = () => {
     crearPedido,
     actualizarPedido,
     eliminarPedido,
+    cambiarEstadoPedido,
   };
 };

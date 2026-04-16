@@ -49,4 +49,15 @@ export const pedidoController = {
       next(e);
     }
   },
+
+  cambiarEstado: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const { estado_pedido } = req.body;
+      const pedido = await pedidoService.cambiarEstado(id, estado_pedido);
+      res.json({ success: true, data: pedido });
+    } catch (e) {
+      next(e);
+    }
+  },
 };

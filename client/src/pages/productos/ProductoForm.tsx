@@ -82,6 +82,8 @@ export default function ProductoForm({
       delete (submitData as any).fecha_actualizacion;
       delete (submitData as any).estado;
     }
+    // Remove nested objects before submission
+    delete (submitData as any).tipo_producto;
     onSubmit(submitData);
   };
 

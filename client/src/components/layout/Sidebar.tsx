@@ -16,6 +16,7 @@ import {
   cilTruck,
   cilCart,
   cilDollar,
+  cilColorPalette,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { NavLink } from "react-router-dom";
@@ -170,6 +171,16 @@ export default function Sidebar({ visible, onVisibleChange, onToggle }: SidebarP
           >
             <CIcon icon={cilDollar} customClassName="nav-icon" />
             Precios Metro Lineal
+          </NavLink>
+        </CNavItem>
+
+        <CNavItem>
+          <NavLink
+            to="/colores"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilColorPalette} customClassName="nav-icon" />
+            Colores
           </NavLink>
         </CNavItem>
 

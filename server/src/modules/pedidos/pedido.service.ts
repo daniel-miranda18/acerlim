@@ -23,4 +23,13 @@ export const pedidoService = {
     await pedidoService.obtener(id);
     return pedidoRepository.delete(id);
   },
+
+  cambiarEstado: async (id: number, estado_pedido: string) => {
+    const estados_validos = ["pendiente", "produccion", "entregado"];
+    if (!estados_validos.includes(estado_pedido)) {
+      throw new Error(`Estado inválido. Debe ser: ${estados_validos.join(", ")}`);
+    }
+    await pedidoService.obtener(id);
+    return pedidoRepository.updateEstado(id, estado_pedido);
+  },
 };

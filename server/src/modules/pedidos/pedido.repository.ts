@@ -136,4 +136,19 @@ export const pedidoRepository = {
     });
     return formatPedido(p);
   },
+
+  updateEstado: async (id: number, estado_pedido: string) => {
+    const p = await prisma.pedido.update({
+      where: { id_pedido: id },
+      data: { estado_pedido, fecha_actualizacion: now() },
+      include: {
+        detalles: {
+          where: { estado: 1 },
+          include: { producto: { include: { tipo_producto: true } } },
+        },
+        dibujo: true,
+      },
+    });
+    return formatPedido(p);
+  },
 };

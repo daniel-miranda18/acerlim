@@ -18,6 +18,9 @@ import proveedorRoutes from "./modules/proveedores/proveedor.routes";
 import loteRoutes from "./modules/lotes/lote.routes";
 import pedidoRoutes from "./modules/pedidos/pedido.routes";
 import precioRoutes from "./modules/precios/precio.routes";
+import colorRoutes from "./modules/colores/color.routes";
+
+import produccionRoutes from "./modules/produccion/produccion.routes";
 
 const app = express();
 
@@ -40,6 +43,8 @@ app.use("/api/proveedores", requireAuth, proveedorRoutes);
 app.use("/api/lotes", requireAuth, loteRoutes);
 app.use("/api/pedidos", requireAuth, pedidoRoutes);
 app.use("/api/precios", requireAuth, precioRoutes);
+app.use("/api/colores", requireAuth, colorRoutes);
+app.use("/api/produccion", requireAuth, produccionRoutes);
 
 app.use(errorMiddleware);
 

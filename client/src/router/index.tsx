@@ -14,6 +14,9 @@ import LotesPage from "../pages/bobinas/LotesPage";
 import CotizacionTechoPage from "../pages/cotizacion/CotizacionTechoPage";
 import PedidosPage from "../pages/pedidos/PedidosPage";
 import PreciosPage from "../pages/precios/PreciosPage";
+import ColoresPage from "../pages/colores/ColoresPage";
+
+import ProduccionPage from "../pages/produccion/ProduccionPage";
 
 export const router = createBrowserRouter([
   {
@@ -43,7 +46,9 @@ export const router = createBrowserRouter([
           { path: "lotes", element: <LotesPage /> },
           { path: "cotizacion", element: <CotizacionTechoPage /> },
           { path: "pedidos", element: <PedidosPage /> },
+          { path: "produccion/:id", element: <ProduccionPage /> },
           { path: "precios", element: <PreciosPage /> },
+          { path: "colores", element: <ColoresPage /> },
         ],
       },
     ],

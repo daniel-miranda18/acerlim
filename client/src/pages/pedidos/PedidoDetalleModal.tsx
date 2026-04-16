@@ -56,7 +56,8 @@ export default function PedidoDetalleModal({ visible, onClose, pedido }: Props) 
             <table className="table table-striped table-hover mb-0">
               <thead style={{ background: "var(--cui-secondary-bg)" }}>
                 <tr>
-                  <th>Producto</th>
+                  <th>Tipo de Calamina</th>
+                  <th className="text-center">Calaminas</th>
                   <th className="text-center">Metros Lineales</th>
                   <th className="text-end">Precio / ml (Bs)</th>
                   <th className="text-end">Subtotal (Bs)</th>
@@ -64,17 +65,44 @@ export default function PedidoDetalleModal({ visible, onClose, pedido }: Props) 
               </thead>
               <tbody>
                 {pedido.detalles && pedido.detalles.length > 0 ? (
-                  pedido.detalles.map((d) => (
-                     <tr key={d.id_detalle}>
-                      <td>{d.producto?.descripcion || d.producto?.tipo_producto?.nombre || `Producto ID: ${d.id_producto}`}</td>
-                      <td className="text-center fw-bold">{Number(d.cantidad).toFixed(2)} ml</td>
-                      <td className="text-end">{Number(d.precio_unitario).toFixed(2)}</td>
-                      <td className="text-end fw-bold">{Number(d.subtotal).toFixed(2)}</td>
-                    </tr>
-                  ))
+                  pedido.detalles.map((d) => {
+                    // Calcular cantidad de calaminas desde datos_json del dibujo
+                    let cantidadCalaminas: number | null = null;
+                    try {
+                      if (pedido.dibujo?.datos_json) {
+                        const conf = JSON.parse(pedido.dibujo.datos_json);
+                        const techoCalaminas = (conf.filas ?? 0) * (conf.columnas ?? 0);
+                        const colasCalaminas = conf.cola_pato?.activa ? (conf.cola_pato.total_colas ?? 0) : 0;
+                        cantidadCalaminas = techoCalaminas + colasCalaminas;
+                      }
+                    } catch {}
+
+                    return (
+                      <tr key={d.id_detalle}>
+                        <td>
+                          <div className="fw-bold text-primary">
+                            {d.producto?.tipo_producto?.nombre || "Calamina"}
+                          </div>
+                          {d.producto?.descripcion && d.producto.descripcion !== d.producto?.tipo_producto?.nombre && (
+                            <div className="small text-secondary">{d.producto.descripcion}</div>
+                          )}
+                        </td>
+                        <td className="text-center fw-bold">
+                          {cantidadCalaminas !== null ? (
+                            <span>{cantidadCalaminas} pzas</span>
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                        </td>
+                        <td className="text-center fw-bold">{Number(d.cantidad).toFixed(2)} ml</td>
+                        <td className="text-end">{Number(d.precio_unitario).toFixed(2)}</td>
+                        <td className="text-end fw-bold">{Number(d.subtotal).toFixed(2)}</td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center text-muted py-3">
+                    <td colSpan={5} className="text-center text-muted py-3">
                       No hay productos registrados
                     </td>
                   </tr>
@@ -82,7 +110,7 @@ export default function PedidoDetalleModal({ visible, onClose, pedido }: Props) 
               </tbody>
               <tfoot style={{ background: "var(--cui-secondary-bg)" }}>
                 <tr>
-                  <td colSpan={3} className="text-end fw-bold align-middle">TOTAL:</td>
+                  <td colSpan={4} className="text-end fw-bold align-middle">TOTAL:</td>
                   <td className="text-end fw-bold fs-5 text-primary">
                     {Number(pedido.total).toFixed(2)}
                   </td>

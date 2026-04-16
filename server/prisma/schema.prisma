@@ -81,7 +81,8 @@ model Bobina {
   id_bobina               Int       @id @default(autoincrement())
   id_lote                 Int
   lote_rel                Lote      @relation(fields: [id_lote], references: [id_lote])
-  color                   String?   @db.VarChar(50)
+  id_color                Int?
+  color_rel               Color?    @relation(fields: [id_color], references: [id_color])
   espesor                 Decimal?  @db.Decimal(5, 2)
   ancho                   Decimal?  @db.Decimal(8, 2)
   peso_inicial            Decimal?  @db.Decimal(10, 2)
@@ -94,6 +95,7 @@ model Bobina {
   fecha_actualizacion   DateTime?
   usuario_creacion      Int?
   usuario_actualizacion Int?
+  producciones          Produccion[]
 
   @@map("bobinas")
 }
@@ -142,6 +144,20 @@ model TipoProducto {
   productos             Producto[]
 
   @@map("tipos_productos")
+}
+
+model Color {
+  id_color              Int       @id @default(autoincrement())
+  nombre                String    @db.VarChar(100)
+  codigo_hex            String    @db.VarChar(7)
+  estado                Int       @default(1) @db.TinyInt
+  fecha_creacion        DateTime  @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  bobinas               Bobina[]
+
+  @@map("colores")
 }
 
 model Producto {
@@ -201,6 +217,7 @@ model Pedido {
   usuario_creacion      Int?
   usuario_actualizacion Int?
   detalles              PedidoDetalle[]
+  producciones          Produccion[]
 
   @@map("pedidos")
 }
@@ -231,4 +248,21 @@ model PrecioMetro {
   usuario_actualizacion Int?
 
   @@map("precios_metro")
+}
+
+model Produccion {
+  id_produccion         Int       @id @default(autoincrement())
+  id_pedido             Int
+  pedido                Pedido    @relation(fields: [id_pedido], references: [id_pedido])
+  id_bobina             Int
+  bobina                Bobina    @relation(fields: [id_bobina], references: [id_bobina])
+  metros_consumidos     Decimal   @db.Decimal(10, 2)
+  observaciones         String?   @db.Text
+  estado                Int       @default(1) @db.TinyInt
+  fecha_creacion        DateTime  @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+
+  @@map("producciones")
 }

@@ -15,7 +15,8 @@ export const bobinaRepository = {
       include: { 
         lote_rel: {
           include: { proveedor_rel: true }
-        }
+        },
+        color_rel: true,
       },
       orderBy: { id_bobina: "desc" },
     });
@@ -28,7 +29,8 @@ export const bobinaRepository = {
       include: { 
         lote_rel: {
           include: { proveedor_rel: true }
-        }
+        },
+        color_rel: true,
       },
     });
     if (!b) return null;
@@ -38,7 +40,7 @@ export const bobinaRepository = {
 
   getStockPorTipo: async () => {
     const grouped = await prisma.bobina.groupBy({
-      by: ['ancho', 'espesor', 'color'],
+      by: ['ancho', 'espesor', 'id_color'],
       where: { estado: 1 },
       _sum: {
         peso_actual: true,
@@ -47,13 +49,21 @@ export const bobinaRepository = {
         id_bobina: true,
       }
     });
-    return grouped.map((g: any) => ({
-      ancho: g.ancho,
-      espesor: g.espesor,
-      color: g.color,
-      total_peso_actual: g._sum.peso_actual,
-      cantidad_bobinas: g._count.id_bobina
+
+    // Manually fetch color details as prisma.groupBy doesn't support nested includes
+    const results = await Promise.all(grouped.map(async (g) => {
+      const color = g.id_color ? await prisma.color.findUnique({ where: { id_color: g.id_color } }) : null;
+      return {
+        ancho: g.ancho,
+        espesor: g.espesor,
+        id_color: g.id_color,
+        color_rel: color,
+        total_peso_actual: g._sum.peso_actual,
+        cantidad_bobinas: g._count.id_bobina
+      };
     }));
+
+    return results;
   },
 
   create: async (data: CrearBobinaDTO, usuarioCreacion: number) => {

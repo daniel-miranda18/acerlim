@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useReactTable,
   getCoreRowModel,
@@ -29,6 +30,7 @@ import {
   cilCloudDownload,
   cilList,
   cil3d,
+  cilIndustry,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import toast from "react-hot-toast";
@@ -40,7 +42,8 @@ import Roof3DModal from "./Roof3DModal";
 import { exportToExcel } from "../../utils/exportExcel";
 
 export default function PedidosPage() {
-  const { pedidos, loading, eliminarPedido } = usePedidos();
+  const navigate = useNavigate();
+  const { pedidos, loading, eliminarPedido, cambiarEstadoPedido } = usePedidos();
 
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([{ id: "fecha", desc: true }]);
@@ -119,51 +122,79 @@ export default function PedidosPage() {
       {
         header: "Estado",
         accessorKey: "estado_pedido",
-        cell: ({ getValue }) => {
+        cell: ({ row, getValue }) => {
           const st = (getValue() as string).toLowerCase();
-          let color = "secondary";
-          if (st === "completado" || st === "pagado" || st === "entregado") color = "success";
-          if (st === "pendiente") color = "warning";
-          if (st === "cancelado") color = "danger";
-          return <CBadge color={color} className="text-uppercase">{st}</CBadge>;
+          return (
+            <CFormSelect
+              size="sm"
+              value={st}
+              onChange={(e) => {
+                const nuevoEstado = e.target.value;
+                if (nuevoEstado !== st) {
+                  cambiarEstadoPedido(row.original.id_pedido, nuevoEstado)
+                    .then(() => toast.success("Estado actualizado"))
+                    .catch(() => toast.error("Error al actualizar estado"));
+                }
+              }}
+              style={{ minWidth: "120px" }}
+            >
+              <option value="pendiente">Pendiente</option>
+              <option value="produccion">Producción</option>
+              <option value="entregado">Entregado</option>
+            </CFormSelect>
+          );
         },
       },
       {
         header: "Acciones",
         id: "acciones",
-        cell: ({ row }) => (
-          <div className="d-flex gap-2">
-            <CButton
-              color="info"
-              variant="outline"
-              size="sm"
-              onClick={() => handleVerDetalles(row.original)}
-              title="Ver Detalles"
-            >
-              <CIcon icon={cilList} />
-            </CButton>
-            {row.original.dibujo && (
+        cell: ({ row }) => {
+          const isProduccion = (row.original.estado_pedido || "").toLowerCase() === "produccion";
+          return (
+            <div className="d-flex gap-2">
               <CButton
-                color="success"
+                color="info"
                 variant="outline"
                 size="sm"
-                onClick={() => handleVer3D(row.original)}
-                title="Ver modelo 3D"
+                onClick={() => handleVerDetalles(row.original)}
+                title="Ver Detalles"
               >
-                <CIcon icon={cil3d} />
+                <CIcon icon={cilList} />
               </CButton>
-            )}
-            <CButton
-              color="danger"
-              variant="outline"
-              size="sm"
-              onClick={() => handleEliminar(row.original)}
-              title="Eliminar Pedido"
-            >
-              <CIcon icon={cilTrash} />
-            </CButton>
-          </div>
-        ),
+              {row.original.dibujo && (
+                <CButton
+                  color="success"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleVer3D(row.original)}
+                  title="Ver modelo 3D"
+                >
+                  <CIcon icon={cil3d} />
+                </CButton>
+              )}
+              {isProduccion && (
+                <CButton
+                  color="primary"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/produccion/${row.original.id_pedido}`)}
+                  title="Iniciar Producción"
+                >
+                  <CIcon icon={cilIndustry} /> Producir
+                </CButton>
+              )}
+              <CButton
+                color="danger"
+                variant="outline"
+                size="sm"
+                onClick={() => handleEliminar(row.original)}
+                title="Eliminar Pedido"
+              >
+                <CIcon icon={cilTrash} />
+              </CButton>
+            </div>
+          );
+        },
       },
     ],
     []
