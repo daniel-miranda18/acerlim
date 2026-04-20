@@ -13,6 +13,7 @@ const formatPedido = (p: any) => ({
     cantidad: Number(d.cantidad),
     precio_unitario: Number(d.precio_unitario),
     subtotal: d.subtotal ? Number(d.subtotal) : null,
+    cantidad_entregada: d.cantidad_entregada ? Number(d.cantidad_entregada) : 0,
   })) ?? [],
 });
 

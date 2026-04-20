@@ -17,6 +17,7 @@ import PreciosPage from "../pages/precios/PreciosPage";
 import ColoresPage from "../pages/colores/ColoresPage";
 
 import ProduccionPage from "../pages/produccion/ProduccionPage";
+import DespachosPage from "../pages/despachos/DespachosPage";
 
 export const router = createBrowserRouter([
   {
@@ -49,6 +50,7 @@ export const router = createBrowserRouter([
           { path: "produccion/:id", element: <ProduccionPage /> },
           { path: "precios", element: <PreciosPage /> },
           { path: "colores", element: <ColoresPage /> },
+          { path: "despachos", element: <DespachosPage /> },
         ],
       },
     ],

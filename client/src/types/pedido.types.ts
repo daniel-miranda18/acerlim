@@ -7,6 +7,7 @@ export interface PedidoDetalle {
   cantidad: number;
   precio_unitario: number;
   subtotal: number | null;
+  cantidad_entregada: number;
   producto?: Producto;
 }
 

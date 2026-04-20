@@ -50,7 +50,7 @@ export default function BobinaForm({
       metros_lineales_inicial: 0,
       metros_lineales_actual: 0,
       estado_bobina: "En Inventario",
-    }
+    },
   );
 
   const [loteSearchTerm, setLoteSearchTerm] = useState("");
@@ -58,11 +58,10 @@ export default function BobinaForm({
 
   const filteredLotes = useMemo(() => {
     return lotes.filter((l) =>
-      l.codigo_lote.toLowerCase().includes(loteSearchTerm.toLowerCase())
+      l.codigo_lote.toLowerCase().includes(loteSearchTerm.toLowerCase()),
     );
   }, [lotes, loteSearchTerm]);
 
-  // Update form data when editing
   useEffect(() => {
     if (bobina) {
       setFormData({
@@ -94,7 +93,9 @@ export default function BobinaForm({
     }
   }, [bobina, visible, lotes]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     const isNumber = [
       "espesor",
@@ -116,12 +117,15 @@ export default function BobinaForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const submitData = { ...formData };
-    
+
     if (!bobina) {
       if (!submitData.peso_actual || Number(submitData.peso_actual) <= 0) {
         submitData.peso_actual = submitData.peso_inicial;
       }
-      if (!submitData.metros_lineales_actual || Number(submitData.metros_lineales_actual) <= 0) {
+      if (
+        !submitData.metros_lineales_actual ||
+        Number(submitData.metros_lineales_actual) <= 0
+      ) {
         submitData.metros_lineales_actual = submitData.metros_lineales_inicial;
       }
     } else {
@@ -133,7 +137,7 @@ export default function BobinaForm({
       delete (submitData as any).lote_rel;
       delete (submitData as any).color_rel;
     }
-    
+
     onSubmit(submitData);
   };
 
@@ -142,7 +146,9 @@ export default function BobinaForm({
   return (
     <CModal visible={visible} onClose={onClose} backdrop="static" size="lg">
       <CModalHeader closeButton>
-        <CModalTitle>{bobina ? "Editar Bobina" : "Registrar Bobina"}</CModalTitle>
+        <CModalTitle>
+          {bobina ? "Editar Bobina" : "Registrar Bobina"}
+        </CModalTitle>
       </CModalHeader>
       <CForm onSubmit={handleSubmit}>
         <CModalBody>
@@ -164,37 +170,47 @@ export default function BobinaForm({
                   required
                 />
                 {showLoteDropdown && (loteSearchTerm || lotes.length > 0) && (
-                  <ul 
-                    className="dropdown-menu show w-100 shadow-sm" 
-                    style={{ 
-                      maxHeight: "200px", 
+                  <ul
+                    className="dropdown-menu show w-100 shadow-sm"
+                    style={{
+                      maxHeight: "200px",
                       overflowY: "auto",
                       top: "100%",
-                      zIndex: 1050 
+                      zIndex: 1050,
                     }}
                   >
                     {filteredLotes.length === 0 ? (
                       <li className="dropdown-item text-secondary small">
-                        No se encontraron lotes. 
-                        <CButton size="sm" variant="ghost" color="primary" className="ms-2" onClick={() => window.location.href='/lotes'}>
+                        No se encontraron lotes.
+                        <CButton
+                          size="sm"
+                          variant="ghost"
+                          color="primary"
+                          className="ms-2"
+                          onClick={() => (window.location.href = "/lotes")}
+                        >
                           Crear Lote
                         </CButton>
                       </li>
                     ) : (
                       filteredLotes.map((l) => (
-                        <li 
-                          key={l.id_lote} 
-                          className="dropdown-item d-flex justify-content-between align-items-center" 
+                        <li
+                          key={l.id_lote}
+                          className="dropdown-item d-flex justify-content-between align-items-center"
                           style={{ cursor: "pointer" }}
                           onClick={() => {
-                            setFormData((prev) => ({ ...prev, id_lote: l.id_lote }));
+                            setFormData((prev) => ({
+                              ...prev,
+                              id_lote: l.id_lote,
+                            }));
                             setLoteSearchTerm(l.codigo_lote);
                             setShowLoteDropdown(false);
                           }}
                         >
                           <span>{l.codigo_lote}</span>
                           <small className="text-secondary">
-                            {l.proveedor_rel?.nombre || "Sin proveedor"} - {l.fecha_ingreso?.substring(0, 10)}
+                            {l.proveedor_rel?.nombre || "Sin proveedor"} -{" "}
+                            {l.fecha_ingreso?.substring(0, 10)}
                           </small>
                         </li>
                       ))
@@ -202,15 +218,15 @@ export default function BobinaForm({
                   </ul>
                 )}
                 {showLoteDropdown && (
-                  <div 
-                    className="position-fixed top-0 start-0 w-100 h-100" 
+                  <div
+                    className="position-fixed top-0 start-0 w-100 h-100"
                     style={{ zIndex: 1040 }}
                     onClick={() => setShowLoteDropdown(false)}
                   />
                 )}
               </div>
             </CCol>
-            
+
             <CCol md={12}>
               <CFormLabel>Color</CFormLabel>
               <div className="d-flex align-items-center gap-2">
@@ -244,7 +260,9 @@ export default function BobinaForm({
                 )}
               </div>
               {errors.id_color && (
-                <div className="invalid-feedback d-block">{errors.id_color[0]}</div>
+                <div className="invalid-feedback d-block">
+                  {errors.id_color[0]}
+                </div>
               )}
             </CCol>
 
@@ -254,6 +272,7 @@ export default function BobinaForm({
                 type="number"
                 step="0.01"
                 min="0"
+                max="999.99"
                 name="espesor"
                 value={formData.espesor || ""}
                 onChange={handleChange}
@@ -268,6 +287,7 @@ export default function BobinaForm({
                 type="number"
                 step="0.01"
                 min="0"
+                max="999999.99"
                 name="ancho"
                 value={formData.ancho || ""}
                 onChange={handleChange}
@@ -282,6 +302,7 @@ export default function BobinaForm({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999999.99"
                 name="peso_inicial"
                 value={formData.peso_inicial || ""}
                 onChange={handleChange}
@@ -296,6 +317,7 @@ export default function BobinaForm({
                 type="number"
                 step="0.01"
                 min="0"
+                max="99999999.99"
                 name="metros_lineales_inicial"
                 value={formData.metros_lineales_inicial || ""}
                 onChange={handleChange}
@@ -312,6 +334,7 @@ export default function BobinaForm({
                     type="number"
                     step="0.01"
                     min="0"
+                    max="99999999.99"
                     name="peso_actual"
                     value={formData.peso_actual || ""}
                     onChange={handleChange}
@@ -325,6 +348,7 @@ export default function BobinaForm({
                     type="number"
                     step="0.01"
                     min="0"
+                    max="99999999.99"
                     name="metros_lineales_actual"
                     value={formData.metros_lineales_actual || ""}
                     onChange={handleChange}
@@ -359,11 +383,14 @@ export default function BobinaForm({
                 <CFormInput
                   type="hidden"
                   name="metros_lineales_actual"
-                  value={formData.metros_lineales_actual || formData.metros_lineales_inicial || ""}
+                  value={
+                    formData.metros_lineales_actual ||
+                    formData.metros_lineales_inicial ||
+                    ""
+                  }
                 />
               </>
             )}
-
           </CRow>
         </CModalBody>
         <CModalFooter>

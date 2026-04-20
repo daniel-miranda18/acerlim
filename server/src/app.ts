@@ -21,6 +21,7 @@ import precioRoutes from "./modules/precios/precio.routes";
 import colorRoutes from "./modules/colores/color.routes";
 
 import produccionRoutes from "./modules/produccion/produccion.routes";
+import despachoRoutes from "./modules/despacho/despacho.routes";
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api/pedidos", requireAuth, pedidoRoutes);
 app.use("/api/precios", requireAuth, precioRoutes);
 app.use("/api/colores", requireAuth, colorRoutes);
 app.use("/api/produccion", requireAuth, produccionRoutes);
+app.use("/api/despachos", requireAuth, despachoRoutes);
 
 app.use(errorMiddleware);
 

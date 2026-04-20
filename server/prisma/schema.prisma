@@ -231,7 +231,9 @@ model PedidoDetalle {
   cantidad              Decimal   @db.Decimal(10, 2)
   precio_unitario       Decimal   @db.Decimal(10, 2)
   subtotal              Decimal?  @db.Decimal(12, 2)
+  cantidad_entregada    Decimal   @default(0) @db.Decimal(10, 2)
   estado                Int       @default(1) @db.TinyInt
+  despacho_detalles     DespachoDetalle[]
 
   @@map("pedido_detalles")
 }
@@ -265,4 +267,31 @@ model Produccion {
   usuario_actualizacion Int?
 
   @@map("producciones")
+}
+
+model Despacho {
+  id_despacho           Int       @id @default(autoincrement())
+  fecha_despacho        DateTime  @default(now())
+  receptor              String?   @db.VarChar(150)
+  observaciones         String?   @db.Text
+  estado                Int       @default(1) @db.TinyInt
+  fecha_creacion        DateTime  @default(now())
+  fecha_actualizacion   DateTime?
+  usuario_creacion      Int?
+  usuario_actualizacion Int?
+  detalles              DespachoDetalle[]
+
+  @@map("despachos")
+}
+
+model DespachoDetalle {
+  id_despacho_detalle   Int       @id @default(autoincrement())
+  id_despacho           Int
+  id_pedido             Int
+  id_pedido_detalle     Int
+  cantidad_entregada    Decimal   @db.Decimal(10, 2)
+  despacho              Despacho  @relation(fields: [id_despacho], references: [id_despacho])
+  pedido_detalle        PedidoDetalle @relation(fields: [id_pedido_detalle], references: [id_detalle])
+
+  @@map("despacho_detalles")
 }

@@ -161,6 +161,16 @@ export default function Sidebar({ visible, onVisibleChange, onToggle }: SidebarP
             Pedidos
           </NavLink>
         </CNavItem>
+
+        <CNavItem>
+          <NavLink
+            to="/despachos"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilTruck} customClassName="nav-icon" />
+            Despachos
+          </NavLink>
+        </CNavItem>
         
         <CNavTitle>Administración</CNavTitle>
 
