@@ -31,10 +31,11 @@ import { useDespachos } from "../../hooks/useDespachos";
 interface Props {
   visible: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function DespachoForm({ visible, onClose }: Props) {
-  const { pedidos, loading: loadingPedidos } = usePedidos();
+export default function DespachoForm({ visible, onClose, onSuccess }: Props) {
+  const { pedidos, loading: loadingPedidos, fetchPedidos } = usePedidos();
   const { crearDespacho } = useDespachos();
 
   const [receptor, setReceptor] = useState("");
@@ -63,6 +64,25 @@ export default function DespachoForm({ visible, onClose }: Props) {
     return Object.values(quantities).filter((v) => v > 0).length;
   }, [quantities]);
 
+  // Auto-rellenar receptor desde los pedidos seleccionados
+  useEffect(() => {
+    if (selectedPedidos.length === 0) {
+      setReceptor("");
+      return;
+    }
+    const nombres = [...new Set(selectedPedidos.map((p) => p.nombre_cliente?.trim()).filter(Boolean))];
+    setReceptor(nombres.join(" / "));
+  }, [selectedPedidos]);
+
+  // Refrescar pedidos cada vez que el modal se abre para tener datos actualizados
+  useEffect(() => {
+    if (visible) {
+      fetchPedidos();
+      setSelectedPedidoIds([]);
+      setQuantities({});
+    }
+  }, [visible]);
+
   // Focus first quantity input when a pedido is selected
   useEffect(() => {
     if (selectedPedidoIds.length > 0 && firstInputRef.current) {
@@ -76,15 +96,19 @@ export default function DespachoForm({ visible, onClose }: Props) {
     );
   };
 
+  // val = número de calaminas ingresadas; max = metros lineales restantes; medidaLargo = metros por calamina
   const handleQuantityChange = (
     idDetalle: number,
     val: string,
-    max: number,
+    maxMetros: number,
+    medidaLargo: number,
   ) => {
-    let num = parseFloat(val) || 0;
-    if (num > max) num = max;
-    if (num < 0) num = 0;
-    setQuantities((prev) => ({ ...prev, [idDetalle]: num }));
+    const calaminas = Math.max(0, Math.floor(Number(val) || 0));
+    const maxCalaminas = medidaLargo > 0 ? Math.floor(maxMetros / medidaLargo) : 0;
+    const calaminasClamped = Math.min(calaminas, maxCalaminas);
+    // Guardamos en metros lineales para que el backend no cambie
+    const metros = calaminasClamped * medidaLargo;
+    setQuantities((prev) => ({ ...prev, [idDetalle]: metros }));
   };
 
   const handleSubmit = async () => {
@@ -123,6 +147,7 @@ export default function DespachoForm({ visible, onClose }: Props) {
       });
       toast.success("Despacho registrado correctamente");
       resetForm();
+      onSuccess?.();
       onClose();
     } catch (error: any) {
       console.error("Error al crear despacho:", error);
@@ -174,10 +199,10 @@ export default function DespachoForm({ visible, onClose }: Props) {
                 </CFormLabel>
                 <CFormInput
                   size="lg"
-                  className="shadow-sm border-primary border-opacity-25"
-                  placeholder="Nombre de la persona que recibe"
+                  readOnly
+                  className="shadow-sm border-primary border-opacity-25 bg-body-tertiary"
+                  placeholder="Se auto-completa al seleccionar un pedido"
                   value={receptor}
-                  onChange={(e) => setReceptor(e.target.value)}
                 />
               </CCol>
               <CCol md={6}>
@@ -215,7 +240,7 @@ export default function DespachoForm({ visible, onClose }: Props) {
                 </div>
               ) : (
                 <CTable hover responsive align="middle" className="mb-0">
-                  <CTableHead className="table-light">
+                  <CTableHead className="bg-body-tertiary">
                     <CTableRow>
                       <CTableHeaderCell
                         style={{ width: "50px" }}
@@ -297,90 +322,178 @@ export default function DespachoForm({ visible, onClose }: Props) {
             ) : (
               <div className="rounded shadow-sm border overflow-hidden">
                 <CTable bordered responsive align="middle" className="mb-0">
-                  <CTableHead className="table-dark">
-                    <CTableRow>
-                      <CTableHeaderCell>Producto</CTableHeaderCell>
-                      <CTableHeaderCell className="text-center">
+                  <CTableHead>
+                    <CTableRow style={{ background: "var(--cui-secondary-bg)" }}>
+                      <CTableHeaderCell
+                        className="fw-semibold"
+                        style={{
+                          color: "var(--cui-body-color)",
+                          background: "var(--cui-secondary-bg)",
+                          borderBottom: "2px solid var(--cui-border-color)",
+                        }}
+                      >
+                        Producto
+                      </CTableHeaderCell>
+                      <CTableHeaderCell
+                        className="text-center fw-semibold"
+                        style={{
+                          color: "var(--cui-body-color)",
+                          background: "var(--cui-secondary-bg)",
+                          borderBottom: "2px solid var(--cui-border-color)",
+                        }}
+                      >
                         Total
                       </CTableHeaderCell>
-                      <CTableHeaderCell className="text-center">
+                      <CTableHeaderCell
+                        className="text-center fw-semibold"
+                        style={{
+                          color: "var(--cui-body-color)",
+                          background: "var(--cui-secondary-bg)",
+                          borderBottom: "2px solid var(--cui-border-color)",
+                        }}
+                      >
                         Entregado
                       </CTableHeaderCell>
-                      <CTableHeaderCell className="text-center">
+                      <CTableHeaderCell
+                        className="text-center fw-semibold"
+                        style={{
+                          color: "var(--cui-body-color)",
+                          background: "var(--cui-secondary-bg)",
+                          borderBottom: "2px solid var(--cui-border-color)",
+                        }}
+                      >
                         Restante
                       </CTableHeaderCell>
                       <CTableHeaderCell
-                        className="text-center bg-primary"
-                        style={{ width: "180px" }}
+                        className="text-center fw-semibold"
+                        style={{
+                          width: "200px",
+                          background: "var(--cui-primary)",
+                          color: "#fff",
+                          borderBottom: "2px solid var(--cui-border-color)",
+                        }}
                       >
-                        A Entregar Ahora
+                        Calaminas a Entregar
                       </CTableHeaderCell>
                     </CTableRow>
                   </CTableHead>
                   <CTableBody>
                     {selectedPedidos.map((p, pIdx) => (
                       <>
-                        <CTableRow className="bg-body-secondary">
+                        <CTableRow>
                           <CTableDataCell
                             colSpan={5}
-                            className="py-2 px-3 fw-bold small text-uppercase opacity-75"
+                            className="py-2 px-3 fw-bold small text-uppercase"
+                            style={{
+                              background: "var(--cui-tertiary-bg)",
+                              color: "var(--cui-secondary-color)",
+                            }}
                           >
                             Pedido #{p.id_pedido} — {p.nombre_cliente}
                           </CTableDataCell>
                         </CTableRow>
                         {p.detalles.map((det, dIdx) => {
-                          const total = Number(det.cantidad);
-                          const entregado = Number(det.cantidad_entregada || 0);
-                          const restante = Math.max(0, total - entregado);
-                          const isFilled =
-                            (quantities[det.id_detalle] || 0) > 0;
+                          const medidaLargo = Number(det.producto?.medida_largo || 0);
+                          const totalMetros = Number(det.cantidad);
+                          const entregadoMetros = Number(det.cantidad_entregada || 0);
+                          const restanteMetros = Math.max(0, totalMetros - entregadoMetros);
 
-                          if (restante <= 0) return null;
+                          // Convertir metros → calaminas
+                          const totalCal = medidaLargo > 0 ? Math.floor(totalMetros / medidaLargo) : 0;
+                          const entregadoCal = medidaLargo > 0 ? Math.floor(entregadoMetros / medidaLargo) : 0;
+                          const restanteCal = medidaLargo > 0 ? Math.floor(restanteMetros / medidaLargo) : 0;
+
+                          // Calaminas que el usuario ha indicado en este despacho
+                          const metrosIngresados = quantities[det.id_detalle] || 0;
+                          const calaminaIngresadas = medidaLargo > 0 ? Math.round(metrosIngresados / medidaLargo) : 0;
+
+                          // Restante descontando lo que se está despachando ahora (en tiempo real)
+                          const restanteMetrosFinal = Math.max(0, restanteMetros - metrosIngresados);
+                          const restanteCalFinal = medidaLargo > 0 ? Math.floor(restanteMetrosFinal / medidaLargo) : 0;
+
+                          const isFilled = metrosIngresados > 0;
+
+                          if (restanteCal <= 0) return null;
 
                           return (
                             <CTableRow
                               key={det.id_detalle}
-                              className={
-                                isFilled ? "table-success bg-opacity-10" : ""
-                              }
+                              style={{
+                                background: isFilled
+                                  ? "rgba(var(--cui-success-rgb), 0.08)"
+                                  : "var(--cui-body-bg)",
+                              }}
                             >
-                              <CTableDataCell className="ps-4">
+                              <CTableDataCell
+                                className="ps-4"
+                                style={{ color: "var(--cui-body-color)" }}
+                              >
                                 <div className="fw-semibold">
                                   {det.producto?.descripcion}
                                 </div>
-                                <div className="small text-body-secondary">
-                                  Calamina medida estándar
+                                <div className="small" style={{ color: "var(--cui-secondary-color)" }}>
+                                  {medidaLargo > 0
+                                    ? `${medidaLargo} m por calamina`
+                                    : "Longitud no definida"}
                                 </div>
                               </CTableDataCell>
-                              <CTableDataCell className="text-center text-body-secondary">
-                                {total.toFixed(2)}
+                              <CTableDataCell
+                                className="text-center"
+                                style={{ color: "var(--cui-secondary-color)" }}
+                              >
+                                <div className="fw-semibold">{totalCal} cal.</div>
+                                <div className="small">{totalMetros.toFixed(2)} m</div>
                               </CTableDataCell>
-                              <CTableDataCell className="text-center text-body-secondary">
-                                {entregado.toFixed(2)}
+                              <CTableDataCell
+                                className="text-center"
+                                style={{ color: "var(--cui-secondary-color)" }}
+                              >
+                                <div className="fw-semibold">{entregadoCal} cal.</div>
+                                <div className="small">{entregadoMetros.toFixed(2)} m</div>
                               </CTableDataCell>
                               <CTableDataCell className="text-center fw-bold">
-                                {restante.toFixed(2)}
+                                <div style={{ color: isFilled ? "var(--cui-warning)" : "var(--cui-body-color)" }}>
+                                  {restanteCalFinal} cal.
+                                </div>
+                                <div
+                                  className="small"
+                                  style={{ color: isFilled ? "var(--cui-warning)" : "var(--cui-secondary-color)" }}
+                                >
+                                  {restanteMetrosFinal.toFixed(2)} m
+                                </div>
                               </CTableDataCell>
-                              <CTableDataCell className="bg-primary bg-opacity-10 p-2 text-center">
+                              <CTableDataCell
+                                className="p-2 text-center"
+                                style={{ background: "rgba(var(--cui-primary-rgb), 0.12)" }}
+                              >
                                 <CFormInput
                                   type="number"
+                                  min={0}
+                                  max={restanteCal}
+                                  step={1}
                                   ref={
                                     pIdx === 0 && dIdx === 0
                                       ? firstInputRef
                                       : null
                                   }
                                   className={`text-center fw-bold border-2 ${isFilled ? "border-success" : "border-primary"}`}
-                                  value={quantities[det.id_detalle] || ""}
-                                  placeholder="0.00"
+                                  value={calaminaIngresadas || ""}
+                                  placeholder="0"
                                   onChange={(e) =>
                                     handleQuantityChange(
                                       det.id_detalle,
                                       e.target.value,
-                                      restante,
+                                      restanteMetros,
+                                      medidaLargo,
                                     )
                                   }
                                   onFocus={(e) => e.target.select()}
                                 />
+                                {isFilled && (
+                                  <div className="small mt-1 fw-semibold text-success">
+                                    = {metrosIngresados.toFixed(2)} m
+                                  </div>
+                                )}
                               </CTableDataCell>
                             </CTableRow>
                           );
