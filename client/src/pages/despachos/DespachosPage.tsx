@@ -29,14 +29,21 @@ import {
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { useDespachos } from "../../hooks/useDespachos";
+import { usePedidos } from "../../hooks/usePedidos";
 import type { Despacho } from "../../types/despacho.types";
 import DespachoForm from "./DespachoForm";
 
 export default function DespachosPage() {
-  const { despachos, loading } = useDespachos();
+  const { despachos, loading, fetchDespachos } = useDespachos();
+  const { fetchPedidos } = usePedidos();
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([{ id: "fecha_despacho", desc: true }]);
   const [formVisible, setFormVisible] = useState(false);
+
+  const handleSuccess = () => {
+    fetchDespachos();
+    fetchPedidos();
+  };
 
   const columns = useMemo<ColumnDef<Despacho>[]>(
     () => [
@@ -207,6 +214,7 @@ export default function DespachosPage() {
       <DespachoForm
         visible={formVisible}
         onClose={() => setFormVisible(false)}
+        onSuccess={handleSuccess}
       />
     </>
   );
