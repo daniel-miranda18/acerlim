@@ -40,6 +40,14 @@ export default function Roof3DModal({ visible, onClose, pedido }: Props) {
     } catch { /* noop */ }
   }
 
+  let techoColor: string | undefined;
+  if (pedido.producciones && pedido.producciones.length > 0) {
+    const p = pedido.producciones[0];
+    if (p.bobina?.color_rel?.codigo_hex) {
+      techoColor = p.bobina.color_rel.codigo_hex;
+    }
+  }
+
   return (
     <CModal visible={visible} onClose={onClose} size="xl" alignment="center" fullscreen="md">
       <CModalHeader>
@@ -62,7 +70,7 @@ export default function Roof3DModal({ visible, onClose, pedido }: Props) {
           </span>
           <span
             className="badge px-3 py-2"
-            style={{ background: "rgba(15,23,42,0.75)", backdropFilter: "blur(8px)", color: "#5dcaa5", fontSize: "0.7rem" }}
+            style={{ background: "rgba(15,23,42,0.75)", backdropFilter: "blur(8px)", color: techoColor || "#5dcaa5", fontSize: "0.7rem" }}
           >
             {filas} filas · {columnas} columnas
           </span>
@@ -94,6 +102,7 @@ export default function Roof3DModal({ visible, onClose, pedido }: Props) {
             colaAltura={colaAltura}
             caidas={caidas}
             theme={theme}
+            techoColor={techoColor}
             style={{ height: "60vh" } as any}
           />
         </Suspense>

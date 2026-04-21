@@ -27,6 +27,9 @@ export const pedidoRepository = {
           include: { producto: { include: { tipo_producto: true } } },
         },
         dibujo: true,
+        producciones: {
+          include: { bobina: { include: { color_rel: true } } }
+        },
       },
       orderBy: { id_pedido: "desc" },
     });
@@ -42,6 +45,9 @@ export const pedidoRepository = {
           include: { producto: { include: { tipo_producto: true } } },
         },
         dibujo: true,
+        producciones: {
+          include: { bobina: { include: { color_rel: true } } }
+        },
       },
     });
     if (!p) return null;
@@ -75,6 +81,9 @@ export const pedidoRepository = {
             include: { producto: { include: { tipo_producto: true } } },
           },
           dibujo: true,
+          producciones: {
+            include: { bobina: { include: { color_rel: true } } }
+          },
         },
       });
       return pedido;
@@ -123,6 +132,9 @@ export const pedidoRepository = {
         include: {
           detalles: { where: { estado: 1 }, include: { producto: { include: { tipo_producto: true } } } },
           dibujo: true,
+          producciones: {
+            include: { bobina: { include: { color_rel: true } } }
+          },
         },
       });
     });
@@ -148,6 +160,9 @@ export const pedidoRepository = {
           include: { producto: { include: { tipo_producto: true } } },
         },
         dibujo: true,
+        producciones: {
+          include: { bobina: { include: { color_rel: true } } }
+        },
       },
     });
     return formatPedido(p);

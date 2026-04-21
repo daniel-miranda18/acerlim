@@ -11,6 +11,16 @@ export interface PedidoDetalle {
   producto?: Producto;
 }
 
+export interface PedidoProduccion {
+  id_produccion: number;
+  bobina: {
+    color_rel?: {
+      codigo_hex: string;
+      nombre: string;
+    } | null;
+  };
+}
+
 export interface Pedido {
   id_pedido: number;
   nombre_cliente: string;
@@ -23,6 +33,7 @@ export interface Pedido {
   estado: number;
   detalles: PedidoDetalle[];
   dibujo?: any;
+  producciones?: PedidoProduccion[];
 }
 
 export interface CrearPedidoDTO {

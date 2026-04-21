@@ -13,6 +13,7 @@ interface RoofViewer3DProps {
   theme?: string;
   className?: string;
   style?: React.CSSProperties;
+  techoColor?: string;
 }
 
 export default function RoofViewer3D({
@@ -27,6 +28,7 @@ export default function RoofViewer3D({
   theme = "light",
   className,
   style,
+  techoColor,
 }: RoofViewer3DProps) {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -111,16 +113,24 @@ export default function RoofViewer3D({
       roughness: 0.85,
       side: THREE.DoubleSide,
     });
+
+    const tColorObj1 = techoColor ? new THREE.Color(techoColor) : new THREE.Color(0x1dab82);
+    const tColorObj2 = techoColor ? new THREE.Color(techoColor).multiplyScalar(0.85) : new THREE.Color(0x14806a);
+    const rColorObj = techoColor ? new THREE.Color(techoColor).multiplyScalar(0.6) : new THREE.Color(0x0a3d2c);
+
     const roofMat = [
-      new THREE.MeshStandardMaterial({ color: 0x1dab82, roughness: 0.55, metalness: 0.28, side: THREE.DoubleSide }),
-      new THREE.MeshStandardMaterial({ color: 0x14806a, roughness: 0.55, metalness: 0.32, side: THREE.DoubleSide }),
+      new THREE.MeshStandardMaterial({ color: tColorObj1, roughness: 0.55, metalness: 0.28, side: THREE.DoubleSide }),
+      new THREE.MeshStandardMaterial({ color: tColorObj2, roughness: 0.55, metalness: 0.32, side: THREE.DoubleSide }),
     ];
     const ridgeMat = new THREE.MeshStandardMaterial({
-      color: 0x0a3d2c, roughness: 0.4, metalness: 0.5,
+      color: rColorObj, roughness: 0.4, metalness: 0.5,
     });
+
+    const cMatColor1 = techoColor ? tColorObj1 : new THREE.Color(0xba7517);
+    const cMatColor2 = techoColor ? tColorObj2 : new THREE.Color(0x9a5f12);
     const colaMats = [
-      new THREE.MeshStandardMaterial({ color: 0xba7517, roughness: 0.5, metalness: 0.28, side: THREE.DoubleSide }),
-      new THREE.MeshStandardMaterial({ color: 0x9a5f12, roughness: 0.5, metalness: 0.32, side: THREE.DoubleSide }),
+      new THREE.MeshStandardMaterial({ color: cMatColor1, roughness: 0.5, metalness: 0.28, side: THREE.DoubleSide }),
+      new THREE.MeshStandardMaterial({ color: cMatColor2, roughness: 0.5, metalness: 0.32, side: THREE.DoubleSide }),
     ];
 
     const addBox = (w: number, h: number, d: number, x: number, y: number, z: number, mat: THREE.Material) => {
@@ -280,7 +290,7 @@ export default function RoofViewer3D({
       renderer.dispose();
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
-  }, [largo, ancho, filas, columnas, colaActiva, colaBase, colaAltura, caidas, theme]);
+  }, [largo, ancho, filas, columnas, colaActiva, colaBase, colaAltura, caidas, theme, techoColor]);
 
   return (
     <div
