@@ -14,6 +14,12 @@ export interface DespachoDetalle {
       id_producto: number;
       descripcion: string;
     };
+    pedido?: {
+      id_pedido: number;
+      nombre_cliente: string;
+      estado_pedido: string;
+      fecha: string;
+    };
   };
 }
 
@@ -22,9 +28,16 @@ export interface Despacho {
   fecha_despacho: string;
   receptor: string | null;
   observaciones: string | null;
+  codigo_qr: string;
   estado: number;
   fecha_creacion: string;
   detalles: DespachoDetalle[];
+}
+
+export interface DespachoQrData {
+  codigo_qr: string;
+  qr_image: string;
+  despacho: Despacho;
 }
 
 export interface CrearDespachoDTO {

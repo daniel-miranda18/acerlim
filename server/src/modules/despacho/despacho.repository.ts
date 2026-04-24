@@ -1,15 +1,18 @@
 import prisma from "../../shared/lib/prisma";
 import { CrearDespachoDTO } from "./despacho.schema";
 import { formatDate, now } from "../../shared/utils/date";
+import crypto from "crypto";
 
 const formatDespacho = (d: any) => ({
   ...d,
   fecha_despacho: formatDate(d.fecha_despacho),
   fecha_creacion: formatDate(d.fecha_creacion),
-  detalles: d.detalles?.map((det: any) => ({
-    ...det,
-    cantidad_entregada: Number(det.cantidad_entregada),
-  })) ?? [],
+  codigo_qr: d.codigo_qr,
+  detalles:
+    d.detalles?.map((det: any) => ({
+      ...det,
+      cantidad_entregada: Number(det.cantidad_entregada),
+    })) ?? [],
 });
 
 export const despachoRepository = {
@@ -21,24 +24,57 @@ export const despachoRepository = {
           include: {
             pedido_detalle: {
               include: {
-                producto: true
-              }
-            }
-          }
-        }
+                producto: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { id_despacho: "desc" },
     });
     return despachos.map(formatDespacho);
   },
 
+  findByCodigoQr: async (codigoQr: string) => {
+    const despacho = await prisma.despacho.findUnique({
+      where: { codigo_qr: codigoQr },
+      include: {
+        detalles: {
+          include: {
+            pedido_detalle: {
+              include: {
+                producto: true,
+                pedido: {
+                  select: {
+                    id_pedido: true,
+                    nombre_cliente: true,
+                    estado_pedido: true,
+                    fecha: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!despacho) return null;
+    return formatDespacho(despacho);
+  },
+
+  generateCodigoQr: () => {
+    return `DSP-${crypto.randomBytes(8).toString("hex").toUpperCase()}`;
+  },
+
   create: async (data: CrearDespachoDTO, usuarioCreacion: number) => {
+    const codigoQr = despachoRepository.generateCodigoQr();
     return await prisma.$transaction(async (tx) => {
       // 1. Create the Despacho
       const despacho = await tx.despacho.create({
         data: {
           receptor: data.receptor,
           observaciones: data.observaciones,
+          codigo_qr: codigoQr,
           usuario_creacion: usuarioCreacion,
           detalles: {
             create: data.detalles.map((d) => ({
@@ -51,7 +87,9 @@ export const despachoRepository = {
       });
 
       // 2. Update PedidoDetalle quantities and check Pedido status
-      const uniquePedidoIds = Array.from(new Set(data.detalles.map(d => d.id_pedido)));
+      const uniquePedidoIds = Array.from(
+        new Set(data.detalles.map((d) => d.id_pedido)),
+      );
 
       for (const d of data.detalles) {
         await tx.pedidoDetalle.update({
@@ -73,10 +111,10 @@ export const despachoRepository = {
 
         if (pedido) {
           const allDelivered = pedido.detalles.every(
-            (det) => Number(det.cantidad_entregada) >= Number(det.cantidad)
+            (det) => Number(det.cantidad_entregada) >= Number(det.cantidad),
           );
           const anyDelivered = pedido.detalles.some(
-            (det) => Number(det.cantidad_entregada) > 0
+            (det) => Number(det.cantidad_entregada) > 0,
           );
 
           let nuevoEstado = pedido.estado_pedido;
@@ -92,9 +130,9 @@ export const despachoRepository = {
           if (nuevoEstado !== pedido.estado_pedido) {
             await tx.pedido.update({
               where: { id_pedido },
-              data: { 
+              data: {
                 estado_pedido: nuevoEstado,
-                fecha_actualizacion: now()
+                fecha_actualizacion: now(),
               },
             });
           }

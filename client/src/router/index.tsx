@@ -18,6 +18,7 @@ import ColoresPage from "../pages/colores/ColoresPage";
 
 import ProduccionPage from "../pages/produccion/ProduccionPage";
 import DespachosPage from "../pages/despachos/DespachosPage";
+import EntregaQrPage from "../pages/despachos/EntregaQrPage";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +52,7 @@ export const router = createBrowserRouter([
           { path: "precios", element: <PreciosPage /> },
           { path: "colores", element: <ColoresPage /> },
           { path: "despachos", element: <DespachosPage /> },
+          { path: "despachos/entrega-qr", element: <EntregaQrPage /> },
         ],
       },
     ],

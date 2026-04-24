@@ -274,6 +274,7 @@ model Despacho {
   fecha_despacho        DateTime  @default(now())
   receptor              String?   @db.VarChar(150)
   observaciones         String?   @db.Text
+  codigo_qr             String    @unique @db.VarChar(100)
   estado                Int       @default(1) @db.TinyInt
   fecha_creacion        DateTime  @default(now())
   fecha_actualizacion   DateTime?

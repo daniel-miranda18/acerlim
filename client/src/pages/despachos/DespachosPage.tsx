@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useReactTable,
   getCoreRowModel,
@@ -25,20 +26,26 @@ import {
   cilArrowTop,
   cilArrowBottom,
   cilPlus,
-  cilTruck,
+  cilQrCode,
 } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { useDespachos } from "../../hooks/useDespachos";
 import { usePedidos } from "../../hooks/usePedidos";
 import type { Despacho } from "../../types/despacho.types";
 import DespachoForm from "./DespachoForm";
+import DespachoQrModal from "./DespachoQrModal";
 
 export default function DespachosPage() {
+  const navigate = useNavigate();
   const { despachos, loading, fetchDespachos } = useDespachos();
   const { fetchPedidos } = usePedidos();
   const [globalFilter, setGlobalFilter] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([{ id: "fecha_despacho", desc: true }]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "fecha_despacho", desc: true },
+  ]);
   const [formVisible, setFormVisible] = useState(false);
+  const [qrVisible, setQrVisible] = useState(false);
+  const [selectedCodigoQr, setSelectedCodigoQr] = useState<string | null>(null);
 
   const handleSuccess = () => {
     fetchDespachos();
@@ -50,7 +57,11 @@ export default function DespachosPage() {
       {
         header: "ID",
         accessorKey: "id_despacho",
-        cell: ({ getValue }) => <span className="fw-bold text-secondary">#{getValue() as number}</span>,
+        cell: ({ getValue }) => (
+          <span className="fw-bold text-secondary">
+            #{getValue() as number}
+          </span>
+        ),
       },
       {
         header: "Fecha",
@@ -60,12 +71,14 @@ export default function DespachosPage() {
       {
         header: "Receptor",
         accessorKey: "receptor",
-        cell: ({ getValue }) => <span className="fw-semibold">{getValue() as string || "—"}</span>,
+        cell: ({ getValue }) => (
+          <span className="fw-semibold">{(getValue() as string) || "—"}</span>
+        ),
       },
       {
         header: "Observaciones",
         accessorKey: "observaciones",
-        cell: ({ getValue }) => getValue() as string || "—",
+        cell: ({ getValue }) => (getValue() as string) || "—",
       },
       {
         header: "Detalles",
@@ -76,8 +89,27 @@ export default function DespachosPage() {
           </div>
         ),
       },
+      {
+        header: "Código QR",
+        id: "codigo_qr",
+        cell: ({ row }) => (
+          <CButton
+            color="primary"
+            variant="outline"
+            size="sm"
+            className="d-flex align-items-center gap-1"
+            onClick={() => {
+              setSelectedCodigoQr(row.original.codigo_qr);
+              setQrVisible(true);
+            }}
+          >
+            <CIcon icon={cilQrCode} size="sm" />
+            Ver QR
+          </CButton>
+        ),
+      },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -102,14 +134,25 @@ export default function DespachosPage() {
             Registro y seguimiento de entregas de productos
           </small>
         </div>
-        <CButton 
-          color="primary" 
-          onClick={() => setFormVisible(true)}
-          className="d-flex align-items-center gap-2 px-4 shadow-sm"
-        >
-          <CIcon icon={cilPlus} />
-          Nuevo Despacho
-        </CButton>
+        <div className="d-flex gap-2">
+          <CButton
+            color="success"
+            variant="outline"
+            onClick={() => navigate("/despachos/entrega-qr")}
+            className="d-flex align-items-center gap-2 px-4 shadow-sm"
+          >
+            <CIcon icon={cilQrCode} />
+            Entrega QR
+          </CButton>
+          <CButton
+            color="primary"
+            onClick={() => setFormVisible(true)}
+            className="d-flex align-items-center gap-2 px-4 shadow-sm"
+          >
+            <CIcon icon={cilPlus} />
+            Nuevo Despacho
+          </CButton>
+        </div>
       </div>
 
       <CCard className="border-0 shadow-sm">
@@ -124,7 +167,9 @@ export default function DespachosPage() {
                 onChange={(e) => table.setPageSize(Number(e.target.value))}
               >
                 {[5, 10, 25, 50, 100].map((n) => (
-                  <option key={n} value={n}>{n}</option>
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
                 ))}
               </CFormSelect>
             </div>
@@ -159,15 +204,24 @@ export default function DespachosPage() {
                             key={header.id}
                             onClick={header.column.getToggleSortingHandler()}
                             style={{
-                              cursor: header.column.getCanSort() ? "pointer" : "default",
+                              cursor: header.column.getCanSort()
+                                ? "pointer"
+                                : "default",
                               whiteSpace: "nowrap",
                               padding: "12px 16px",
                             }}
                           >
                             <div className="d-flex align-items-center gap-1">
-                              {flexRender(header.column.columnDef.header, header.getContext())}
-                              {header.column.getIsSorted() === "asc" && <CIcon icon={cilArrowTop} size="sm" />}
-                              {header.column.getIsSorted() === "desc" && <CIcon icon={cilArrowBottom} size="sm" />}
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                              {header.column.getIsSorted() === "asc" && (
+                                <CIcon icon={cilArrowTop} size="sm" />
+                              )}
+                              {header.column.getIsSorted() === "desc" && (
+                                <CIcon icon={cilArrowBottom} size="sm" />
+                              )}
                             </div>
                           </th>
                         ))}
@@ -177,17 +231,35 @@ export default function DespachosPage() {
                   <tbody>
                     {table.getRowModel().rows.length === 0 ? (
                       <tr>
-                        <td colSpan={columns.length} className="text-center py-5 text-secondary">
-                          <CIcon icon={cilTruck} size="xl" className="mb-2 opacity-25" />
-                          <p className="mb-0">No se encontraron despachos registrados</p>
+                        <td
+                          colSpan={columns.length}
+                          className="text-center py-5 text-secondary"
+                        >
+                          <CIcon
+                            icon={cilQrCode}
+                            size="xl"
+                            className="mb-2 opacity-25"
+                          />
+                          <p className="mb-0">
+                            No se encontraron despachos registrados
+                          </p>
                         </td>
                       </tr>
                     ) : (
                       table.getRowModel().rows.map((row) => (
                         <tr key={row.id}>
                           {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} style={{ padding: "12px 16px", verticalAlign: "middle" }}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            <td
+                              key={cell.id}
+                              style={{
+                                padding: "12px 16px",
+                                verticalAlign: "middle",
+                              }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
                             </td>
                           ))}
                         </tr>
@@ -199,11 +271,28 @@ export default function DespachosPage() {
 
               <div className="d-flex align-items-center justify-content-between px-3 py-3 border-top flex-wrap gap-2 opacity-75">
                 <small className="text-secondary fw-medium">
-                  Resultados: {table.getFilteredRowModel().rows.length} registros
+                  Resultados: {table.getFilteredRowModel().rows.length}{" "}
+                  registros
                 </small>
                 <div className="d-flex gap-1">
-                  <CButton color="secondary" variant="ghost" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Anterior</CButton>
-                  <CButton color="secondary" variant="ghost" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Siguiente</CButton>
+                  <CButton
+                    color="secondary"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                  >
+                    Anterior
+                  </CButton>
+                  <CButton
+                    color="secondary"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                  >
+                    Siguiente
+                  </CButton>
                 </div>
               </div>
             </>
@@ -215,6 +304,12 @@ export default function DespachosPage() {
         visible={formVisible}
         onClose={() => setFormVisible(false)}
         onSuccess={handleSuccess}
+      />
+
+      <DespachoQrModal
+        visible={qrVisible}
+        onClose={() => setQrVisible(false)}
+        codigoQr={selectedCodigoQr}
       />
     </>
   );

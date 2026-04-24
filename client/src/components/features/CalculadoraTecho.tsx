@@ -140,7 +140,7 @@ const CalculadoraTecho: React.FC<CalculadoraTechoProps> = ({ params, onUpdate })
                 <CButton
                   key={num}
                   color={params.caidas === num || (!params.caidas && num === 2) ? "primary" : "secondary"}
-                  variant={params.caidas === num || (!params.caidas && num === 2) ? "solid" : "ghost"}
+                  variant={params.caidas === num || (!params.caidas && num === 2) ? undefined : "ghost"}
                   className={`flex-grow-1 py-2 fw-bold ${params.caidas !== num && !(num === 2 && !params.caidas) ? 'text-secondary-emphasis' : ''}`}
                   onClick={() => onUpdate({ caidas: num })}
                 >
