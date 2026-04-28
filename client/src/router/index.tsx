@@ -19,6 +19,9 @@ import ColoresPage from "../pages/colores/ColoresPage";
 import ProduccionPage from "../pages/produccion/ProduccionPage";
 import DespachosPage from "../pages/despachos/DespachosPage";
 import EntregaQrPage from "../pages/despachos/EntregaQrPage";
+import AuditoriaPage from "../pages/auditoria/AuditoriaPage";
+import EventosHttpPage from "../pages/auditoria/EventosHttpPage";
+import SesionesPage from "../pages/auditoria/SesionesPage";
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +56,9 @@ export const router = createBrowserRouter([
           { path: "colores", element: <ColoresPage /> },
           { path: "despachos", element: <DespachosPage /> },
           { path: "despachos/entrega-qr", element: <EntregaQrPage /> },
+          { path: "auditoria", element: <AuditoriaPage /> },
+          { path: "eventos-http", element: <EventosHttpPage /> },
+          { path: "sesiones", element: <SesionesPage /> },
         ],
       },
     ],

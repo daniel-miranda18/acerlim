@@ -48,19 +48,22 @@ model RolPermiso {
 }
 
 model Usuario {
-  id_usuario            Int                   @id @default(autoincrement())
-  nombre                String                @db.VarChar(100)
-  correo                String                @unique @db.VarChar(120)
-  clave                 String                @db.VarChar(255)
+  id_usuario            Int                  @id @default(autoincrement())
+  nombre                String               @db.VarChar(100)
+  correo                String               @unique @db.VarChar(120)
+  clave                 String               @db.VarChar(255)
   id_rol                Int?
-  telefono              String?               @db.VarChar(20)
-  estado                Int                   @default(1) @db.TinyInt
-  fecha_creacion        DateTime              @default(now())
+  telefono              String?              @db.VarChar(20)
+  estado                Int                  @default(1) @db.TinyInt
+  fecha_creacion        DateTime             @default(now())
   fecha_actualizacion   DateTime?
   usuario_creacion      Int?
   usuario_actualizacion Int?
-  rol                   Rol?                  @relation(fields: [id_rol], references: [id_rol])
+  rol                   Rol?                 @relation(fields: [id_rol], references: [id_rol])
   codigos_verificacion  CodigoVerificacion[]
+  sesiones              Sesion[]
+  eventos_http          EventoHttp[]
+  auditorias            Auditoria[]
 
   @@map("usuarios")
 }
@@ -78,36 +81,36 @@ model CodigoVerificacion {
 }
 
 model Bobina {
-  id_bobina               Int       @id @default(autoincrement())
+  id_bobina               Int          @id @default(autoincrement())
   id_lote                 Int
-  lote_rel                Lote      @relation(fields: [id_lote], references: [id_lote])
+  lote_rel                Lote         @relation(fields: [id_lote], references: [id_lote])
   id_color                Int?
-  color_rel               Color?    @relation(fields: [id_color], references: [id_color])
-  espesor                 Decimal?  @db.Decimal(5, 2)
-  ancho                   Decimal?  @db.Decimal(8, 2)
-  peso_inicial            Decimal?  @db.Decimal(10, 2)
-  peso_actual             Decimal?  @db.Decimal(10, 2)
-  metros_lineales_inicial Decimal?  @db.Decimal(10, 2)
-  metros_lineales_actual  Decimal?  @db.Decimal(10, 2)
-  estado_bobina           String?   @db.VarChar(50)
-  estado                  Int       @default(1) @db.TinyInt
-  fecha_creacion          DateTime  @default(now())
-  fecha_actualizacion   DateTime?
-  usuario_creacion      Int?
-  usuario_actualizacion Int?
-  producciones          Produccion[]
+  color_rel               Color?       @relation(fields: [id_color], references: [id_color])
+  espesor                 Decimal?     @db.Decimal(5, 2)
+  ancho                   Decimal?     @db.Decimal(8, 2)
+  peso_inicial            Decimal?     @db.Decimal(10, 2)
+  peso_actual             Decimal?     @db.Decimal(10, 2)
+  metros_lineales_inicial Decimal?     @db.Decimal(10, 2)
+  metros_lineales_actual  Decimal?     @db.Decimal(10, 2)
+  estado_bobina           String?      @db.VarChar(50)
+  estado                  Int          @default(1) @db.TinyInt
+  fecha_creacion          DateTime     @default(now())
+  fecha_actualizacion     DateTime?
+  usuario_creacion        Int?
+  usuario_actualizacion   Int?
+  producciones            Produccion[]
 
   @@map("bobinas")
 }
 
 model Lote {
-  id_lote               Int       @id @default(autoincrement())
-  codigo_lote           String    @unique @db.VarChar(50)
+  id_lote               Int        @id @default(autoincrement())
+  codigo_lote           String     @unique @db.VarChar(50)
   id_proveedor          Int?
   proveedor_rel         Proveedor? @relation(fields: [id_proveedor], references: [id_proveedor])
-  fecha_ingreso         DateTime? @db.Date
-  estado                Int       @default(1) @db.TinyInt
-  fecha_creacion        DateTime  @default(now())
+  fecha_ingreso         DateTime?  @db.Date
+  estado                Int        @default(1) @db.TinyInt
+  fecha_creacion        DateTime   @default(now())
   fecha_actualizacion   DateTime?
   usuario_creacion      Int?
   usuario_actualizacion Int?
@@ -134,10 +137,10 @@ model Proveedor {
 }
 
 model TipoProducto {
-  id_tipo_producto      Int       @id @default(autoincrement())
-  nombre                String    @db.VarChar(100)
-  estado                Int       @default(1) @db.TinyInt
-  fecha_creacion        DateTime  @default(now())
+  id_tipo_producto      Int        @id @default(autoincrement())
+  nombre                String     @db.VarChar(100)
+  estado                Int        @default(1) @db.TinyInt
+  fecha_creacion        DateTime   @default(now())
   fecha_actualizacion   DateTime?
   usuario_creacion      Int?
   usuario_actualizacion Int?
@@ -161,20 +164,20 @@ model Color {
 }
 
 model Producto {
-  id_producto           Int               @id @default(autoincrement())
+  id_producto           Int       @id @default(autoincrement())
   id_tipo_producto      Int?
-  descripcion           String?           @db.Text
-  medida_largo          Decimal?          @db.Decimal(10, 2)
-  medida_ancho          Decimal?          @db.Decimal(10, 2)
-  estado                Int               @default(1) @db.TinyInt
-  fecha_creacion        DateTime          @default(now())
+  descripcion           String?   @db.Text
+  medida_largo          Decimal?  @db.Decimal(10, 2)
+  medida_ancho          Decimal?  @db.Decimal(10, 2)
+  estado                Int       @default(1) @db.TinyInt
+  fecha_creacion        DateTime  @default(now())
   fecha_actualizacion   DateTime?
   usuario_creacion      Int?
   usuario_actualizacion Int?
-  
-  tipo_producto         TipoProducto?     @relation(fields: [id_tipo_producto], references: [id_tipo_producto])
-  dibujos               DibujoCalamina[]
-  pedido_detalles       PedidoDetalle[]
+
+  tipo_producto   TipoProducto?    @relation(fields: [id_tipo_producto], references: [id_tipo_producto])
+  dibujos         DibujoCalamina[]
+  pedido_detalles PedidoDetalle[]
 
   @@map("productos")
 }
@@ -186,7 +189,7 @@ model DibujoCalamina {
   ancho                 Decimal   @db.Decimal(10, 2)
   area_plana            Decimal?  @db.Decimal(12, 2)
   area_proyectada       Decimal?  @db.Decimal(12, 2)
-  configuracion_calculo Json?     // Almacena pendientes, cumbres, limas, etc.
+  configuracion_calculo Json? // Almacena pendientes, cumbres, limas, etc.
   datos_json            String?   @db.Text
   imagen_generada       String?   @db.Text
   caidas                Int       @default(2)
@@ -223,17 +226,17 @@ model Pedido {
 }
 
 model PedidoDetalle {
-  id_detalle            Int       @id @default(autoincrement())
-  id_pedido             Int
-  pedido                Pedido    @relation(fields: [id_pedido], references: [id_pedido])
-  id_producto           Int
-  producto              Producto  @relation(fields: [id_producto], references: [id_producto])
-  cantidad              Decimal   @db.Decimal(10, 2)
-  precio_unitario       Decimal   @db.Decimal(10, 2)
-  subtotal              Decimal?  @db.Decimal(12, 2)
-  cantidad_entregada    Decimal   @default(0) @db.Decimal(10, 2)
-  estado                Int       @default(1) @db.TinyInt
-  despacho_detalles     DespachoDetalle[]
+  id_detalle         Int               @id @default(autoincrement())
+  id_pedido          Int
+  pedido             Pedido            @relation(fields: [id_pedido], references: [id_pedido])
+  id_producto        Int
+  producto           Producto          @relation(fields: [id_producto], references: [id_producto])
+  cantidad           Decimal           @db.Decimal(10, 2)
+  precio_unitario    Decimal           @db.Decimal(10, 2)
+  subtotal           Decimal?          @db.Decimal(12, 2)
+  cantidad_entregada Decimal           @default(0) @db.Decimal(10, 2)
+  estado             Int               @default(1) @db.TinyInt
+  despacho_detalles  DespachoDetalle[]
 
   @@map("pedido_detalles")
 }
@@ -270,13 +273,13 @@ model Produccion {
 }
 
 model Despacho {
-  id_despacho           Int       @id @default(autoincrement())
-  fecha_despacho        DateTime  @default(now())
-  receptor              String?   @db.VarChar(150)
-  observaciones         String?   @db.Text
-  codigo_qr             String    @unique @db.VarChar(100)
-  estado                Int       @default(1) @db.TinyInt
-  fecha_creacion        DateTime  @default(now())
+  id_despacho           Int               @id @default(autoincrement())
+  fecha_despacho        DateTime          @default(now())
+  receptor              String?           @db.VarChar(150)
+  observaciones         String?           @db.Text
+  codigo_qr             String            @unique @db.VarChar(100)
+  estado                Int               @default(1) @db.TinyInt
+  fecha_creacion        DateTime          @default(now())
   fecha_actualizacion   DateTime?
   usuario_creacion      Int?
   usuario_actualizacion Int?
@@ -286,13 +289,53 @@ model Despacho {
 }
 
 model DespachoDetalle {
-  id_despacho_detalle   Int       @id @default(autoincrement())
-  id_despacho           Int
-  id_pedido             Int
-  id_pedido_detalle     Int
-  cantidad_entregada    Decimal   @db.Decimal(10, 2)
-  despacho              Despacho  @relation(fields: [id_despacho], references: [id_despacho])
-  pedido_detalle        PedidoDetalle @relation(fields: [id_pedido_detalle], references: [id_detalle])
+  id_despacho_detalle Int           @id @default(autoincrement())
+  id_despacho         Int
+  id_pedido           Int
+  id_pedido_detalle   Int
+  cantidad_entregada  Decimal       @db.Decimal(10, 2)
+  despacho            Despacho      @relation(fields: [id_despacho], references: [id_despacho])
+  pedido_detalle      PedidoDetalle @relation(fields: [id_pedido_detalle], references: [id_detalle])
 
   @@map("despacho_detalles")
+}
+
+model Sesion {
+  id_sesion    Int       @id @default(autoincrement())
+  id_usuario   Int?
+  fecha_inicio DateTime?
+  fecha_cierre DateTime?
+  ip           String?   @db.VarChar(45)
+  dispositivo  String?   @db.VarChar(120)
+  estado       Int       @default(1) @db.TinyInt
+  usuario      Usuario?  @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@map("sesiones")
+}
+
+model EventoHttp {
+  id_evento    Int      @id @default(autoincrement())
+  id_usuario   Int?
+  metodo       String?  @db.VarChar(10)
+  endpoint     String?  @db.VarChar(150)
+  descripcion  String?  @db.Text
+  fecha_evento DateTime @default(now())
+  estado       Int      @default(1) @db.TinyInt
+  usuario      Usuario? @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@map("eventos_http")
+}
+
+model Auditoria {
+  id_auditoria   Int      @id @default(autoincrement())
+  tabla_afectada String?  @db.VarChar(100)
+  id_registro    Int?
+  accion         String?  @db.VarChar(20)
+  descripcion    String?  @db.Text
+  id_usuario     Int?
+  fecha_evento   DateTime @default(now())
+  estado         Int      @default(1) @db.TinyInt
+  usuario        Usuario? @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@map("auditoria")
 }

@@ -22,6 +22,8 @@ import colorRoutes from "./modules/colores/color.routes";
 
 import produccionRoutes from "./modules/produccion/produccion.routes";
 import despachoRoutes from "./modules/despacho/despacho.routes";
+import auditoriaRoutes from "./modules/auditoria/auditoria.routes";
+import { httpLoggerMiddleware } from "./shared/middlewares/http-logger.middleware";
 
 const app = express();
 
@@ -30,6 +32,8 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 app.use(passport.initialize());
+
+app.use(httpLoggerMiddleware);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", requireAuth, requireRole(["gerente"]), usuarioRoutes);
@@ -47,6 +51,7 @@ app.use("/api/precios", requireAuth, precioRoutes);
 app.use("/api/colores", requireAuth, colorRoutes);
 app.use("/api/produccion", requireAuth, produccionRoutes);
 app.use("/api/despachos", requireAuth, despachoRoutes);
+app.use("/api/auditoria", requireAuth, requireRole(["gerente"]), auditoriaRoutes);
 
 app.use(errorMiddleware);
 

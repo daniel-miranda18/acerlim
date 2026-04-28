@@ -119,6 +119,15 @@ export const authController = {
         { expiresIn: env.JWT_EXPIRES_IN as any },
       );
 
+      await prisma.sesion.create({
+        data: {
+          id_usuario: usuario.id_usuario,
+          fecha_inicio: new Date(),
+          ip: req.ip || req.connection?.remoteAddress || "Desconocida",
+          dispositivo: req.headers["user-agent"]?.substring(0, 120) || "Desconocido",
+        },
+      });
+
       return ok(res, { user: userWithoutSensitive, token }, "Bienvenido!");
     } catch (e) {
       console.error("Error verifying 2FA:", e);
@@ -170,6 +179,30 @@ export const authController = {
       return ok(res, req.user);
     } catch (e) {
       serverError(res);
+    }
+  },
+
+  logout: async (req: Request, res: Response) => {
+    try {
+      if (req.user) {
+        const id_usuario = (req.user as any).id_usuario || (req.user as any).id;
+        if (id_usuario) {
+          const lastSession = await prisma.sesion.findFirst({
+            where: { id_usuario, fecha_cierre: null },
+            orderBy: { fecha_inicio: "desc" },
+          });
+          if (lastSession) {
+            await prisma.sesion.update({
+              where: { id_sesion: lastSession.id_sesion },
+              data: { fecha_cierre: new Date() },
+            });
+          }
+        }
+      }
+      return ok(res, null, "Sesión cerrada exitosamente");
+    } catch (e) {
+      console.error("Error logging out", e);
+      return serverError(res);
     }
   },
 };

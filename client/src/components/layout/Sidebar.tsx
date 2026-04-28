@@ -223,6 +223,38 @@ export default function Sidebar({ visible, onVisibleChange, onToggle }: SidebarP
             Permisos
           </NavLink>
         </CNavItem>
+
+        <CNavTitle>Seguridad y Auditoría</CNavTitle>
+
+        <CNavItem>
+          <NavLink
+            to="/auditoria"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilShieldAlt} customClassName="nav-icon" />
+            Auditoría Sistema
+          </NavLink>
+        </CNavItem>
+
+        <CNavItem>
+          <NavLink
+            to="/eventos-http"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilLockLocked} customClassName="nav-icon" />
+            Eventos HTTP
+          </NavLink>
+        </CNavItem>
+
+        <CNavItem>
+          <NavLink
+            to="/sesiones"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <CIcon icon={cilPeople} customClassName="nav-icon" />
+            Sesiones
+          </NavLink>
+        </CNavItem>
       </CSidebarNav>
 
       <CSidebarToggler onClick={onToggle} />
