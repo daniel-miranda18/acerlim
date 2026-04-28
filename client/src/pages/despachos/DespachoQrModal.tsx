@@ -59,12 +59,24 @@ export default function DespachoQrModal({ visible, onClose, codigoQr }: Props) {
     const despacho = qrData.despacho;
     const detallesHtml = despacho.detalles
       .map(
-        (d) => `
+        (d) => {
+          const producto = d.pedido_detalle?.producto;
+          const nombreProducto = producto?.tipo_producto?.nombre || producto?.descripcion || "—";
+          const medidaLargo = Number(producto?.medida_largo || 0);
+          const cantidadMetros = Number(d.cantidad_entregada);
+          const calaminas = medidaLargo > 0 ? Math.floor(cantidadMetros / medidaLargo) : 0;
+          let cantidadTexto = `${cantidadMetros.toFixed(2)} m`;
+          if (calaminas > 0) {
+            cantidadTexto = `${calaminas} cal. (${cantidadMetros.toFixed(2)} m)`;
+          }
+
+          return `
         <tr>
-          <td style="padding:6px;border:1px solid #ddd">${d.pedido_detalle?.producto?.descripcion || "—"}</td>
+          <td style="padding:6px;border:1px solid #ddd">${nombreProducto}</td>
           <td style="padding:6px;border:1px solid #ddd;text-align:center">${d.pedido_detalle?.pedido?.nombre_cliente || "—"}</td>
-          <td style="padding:6px;border:1px solid #ddd;text-align:center">${Number(d.cantidad_entregada).toFixed(2)} m</td>
-        </tr>`
+          <td style="padding:6px;border:1px solid #ddd;text-align:center">${cantidadTexto}</td>
+        </tr>`;
+        }
       )
       .join("");
 
@@ -190,19 +202,30 @@ export default function DespachoQrModal({ visible, onClose, codigoQr }: Props) {
                     </CTableRow>
                   </CTableHead>
                   <CTableBody>
-                    {qrData.despacho.detalles.map((d) => (
-                      <CTableRow key={d.id_despacho_detalle}>
-                        <CTableDataCell>
-                          {d.pedido_detalle?.producto?.descripcion || "—"}
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center">
-                          {d.pedido_detalle?.pedido?.nombre_cliente || "—"}
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center fw-bold">
-                          {Number(d.cantidad_entregada).toFixed(2)} m
-                        </CTableDataCell>
-                      </CTableRow>
-                    ))}
+                    {qrData.despacho.detalles.map((d) => {
+                      const producto = d.pedido_detalle?.producto;
+                      const nombreProducto = producto?.tipo_producto?.nombre || producto?.descripcion || "—";
+                      const medidaLargo = Number(producto?.medida_largo || 0);
+                      const cantidadMetros = Number(d.cantidad_entregada);
+                      const calaminas = medidaLargo > 0 ? Math.floor(cantidadMetros / medidaLargo) : 0;
+
+                      return (
+                        <CTableRow key={d.id_despacho_detalle}>
+                          <CTableDataCell>
+                            {nombreProducto}
+                          </CTableDataCell>
+                          <CTableDataCell className="text-center">
+                            {d.pedido_detalle?.pedido?.nombre_cliente || "—"}
+                          </CTableDataCell>
+                          <CTableDataCell className="text-center fw-bold">
+                            {calaminas > 0 && <span className="me-1">{calaminas} cal.</span>}
+                            <span className={calaminas > 0 ? "text-secondary small" : ""}>
+                              {calaminas > 0 ? `(${cantidadMetros.toFixed(2)} m)` : `${cantidadMetros.toFixed(2)} m`}
+                            </span>
+                          </CTableDataCell>
+                        </CTableRow>
+                      );
+                    })}
                   </CTableBody>
                 </CTable>
               </div>

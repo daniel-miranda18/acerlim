@@ -124,6 +124,15 @@ export default function PedidosPage() {
         accessorKey: "estado_pedido",
         cell: ({ row, getValue }) => {
           const st = (getValue() as string).toLowerCase();
+          
+          if (st === "entregado") {
+            return (
+              <CBadge color="success" className="px-3 py-2 text-uppercase fw-semibold" style={{ fontSize: "0.85rem" }}>
+                Entregado
+              </CBadge>
+            );
+          }
+
           return (
             <CFormSelect
               size="sm"
@@ -140,7 +149,6 @@ export default function PedidosPage() {
             >
               <option value="pendiente">Pendiente</option>
               <option value="produccion">Producción</option>
-              <option value="entregado">Entregado</option>
             </CFormSelect>
           );
         },

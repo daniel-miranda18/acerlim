@@ -24,7 +24,11 @@ export const despachoRepository = {
           include: {
             pedido_detalle: {
               include: {
-                producto: true,
+                producto: {
+                  include: {
+                    tipo_producto: true,
+                  },
+                },
               },
             },
           },
@@ -43,7 +47,11 @@ export const despachoRepository = {
           include: {
             pedido_detalle: {
               include: {
-                producto: true,
+                producto: {
+                  include: {
+                    tipo_producto: true,
+                  },
+                },
                 pedido: {
                   select: {
                     id_pedido: true,

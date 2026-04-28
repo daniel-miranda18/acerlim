@@ -22,7 +22,7 @@ import {
   CBadge,
   CAlert,
 } from "@coreui/react";
-import { cilCheckCircle, cilList, cilTruck, cilInfo } from "@coreui/icons";
+import { cilCheckCircle, cilTruck, cilInfo } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import toast from "react-hot-toast";
 import { usePedidos } from "../../hooks/usePedidos";
@@ -256,7 +256,7 @@ export default function DespachoForm({ visible, onClose, onSuccess }: Props) {
                     </CTableRow>
                   </CTableHead>
                   <CTableBody>
-                    {eligiblePedidos.map((p, idx) => (
+                    {eligiblePedidos.map((p) => (
                       <CTableRow
                         key={p.id_pedido}
                         onClick={() => handleTogglePedido(p.id_pedido)}

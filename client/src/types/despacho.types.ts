@@ -13,6 +13,10 @@ export interface DespachoDetalle {
     producto: {
       id_producto: number;
       descripcion: string;
+      medida_largo?: number | string;
+      tipo_producto?: {
+        nombre: string;
+      };
     };
     pedido?: {
       id_pedido: number;

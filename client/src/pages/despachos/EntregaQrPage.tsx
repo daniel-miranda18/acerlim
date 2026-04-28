@@ -265,24 +265,35 @@ export default function EntregaQrPage() {
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-                {despacho.detalles.map((d) => (
-                  <CTableRow key={d.id_despacho_detalle}>
-                    <CTableDataCell className="fw-semibold">
-                      {d.pedido_detalle?.producto?.descripcion || "—"}
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CBadge color="primary" shape="rounded-pill">
-                        #{d.id_pedido}
-                      </CBadge>
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      {d.pedido_detalle?.pedido?.nombre_cliente || "—"}
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center fw-bold">
-                      {Number(d.cantidad_entregada).toFixed(2)} m
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
+                {despacho.detalles.map((d) => {
+                  const producto = d.pedido_detalle?.producto;
+                  const nombreProducto = producto?.tipo_producto?.nombre || producto?.descripcion || "—";
+                  const medidaLargo = Number(producto?.medida_largo || 0);
+                  const cantidadMetros = Number(d.cantidad_entregada);
+                  const calaminas = medidaLargo > 0 ? Math.floor(cantidadMetros / medidaLargo) : 0;
+
+                  return (
+                    <CTableRow key={d.id_despacho_detalle}>
+                      <CTableDataCell className="fw-semibold">
+                        {nombreProducto}
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        <CBadge color="primary" shape="rounded-pill">
+                          #{d.id_pedido}
+                        </CBadge>
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        {d.pedido_detalle?.pedido?.nombre_cliente || "—"}
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center fw-bold">
+                        {calaminas > 0 && <span className="me-1">{calaminas} cal.</span>}
+                        <span className={calaminas > 0 ? "text-secondary small" : ""}>
+                          {calaminas > 0 ? `(${cantidadMetros.toFixed(2)} m)` : `${cantidadMetros.toFixed(2)} m`}
+                        </span>
+                      </CTableDataCell>
+                    </CTableRow>
+                  );
+                })}
               </CTableBody>
             </CTable>
 
